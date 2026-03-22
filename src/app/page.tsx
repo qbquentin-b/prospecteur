@@ -73,12 +73,16 @@ export default function Home() {
 
   useEffect(() => {
     const checkSession = async () => {
+      // Check for dev_bypass flag
+      const devBypass = typeof window !== 'undefined' ? sessionStorage.getItem('dev_bypass') : null;
+
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+
+      if (!session && !devBypass) {
         router.push("/login");
       } else {
-        setSession(session);
-        // Load initial data only if authenticated
+        setSession(session || { user: { id: 'dev_bypass_mock_id' } });
+        // Load initial data only if authenticated or bypassed
         fetchLeads("Restaurants", "Paris, FR", 5);
       }
     };
@@ -87,9 +91,10 @@ export default function Home() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!session) {
+        const devBypass = typeof window !== 'undefined' ? sessionStorage.getItem('dev_bypass') : null;
+        if (!session && !devBypass) {
           router.push("/login");
-        } else {
+        } else if (session) {
           setSession(session);
         }
       }
