@@ -114,6 +114,20 @@ export default function Register() {
                 {loading ? 'Inscription...' : 'S\'inscrire'}
               </button>
             </div>
+
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  // Bypass authentication and force redirection to the dashboard
+                  sessionStorage.setItem('dev_bypass', 'true');
+                  router.push('/');
+                }}
+                className="flex w-full justify-center rounded-lg bg-slate-200 dark:bg-slate-700 h-11 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-300 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all items-center"
+              >
+                Passer (Dev Mode)
+              </button>
+            </div>
           </form>
         </div>
       </div>

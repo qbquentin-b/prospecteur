@@ -9,6 +9,9 @@ export default function Header() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('dev_bypass');
+    }
     router.push('/login');
   };
   return (
