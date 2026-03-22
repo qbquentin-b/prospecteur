@@ -15,13 +15,33 @@ export default function Home() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
+  const fetchLeads = async (sector: string, location: string) => {
+    setIsLoading(true);
+    setLeads([]);
+    setSelectedLead(null);
+    setIsSidebarOpen(false);
+
+    try {
+      const response = await fetch(`/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLeads(data);
+      } else {
+        console.error('Failed to fetch leads');
+        // Fallback to mock data on error for demo purposes
+        setLeads(mockLeads);
+      }
+    } catch (error) {
+      console.error('Error fetching leads:', error);
       setLeads(mockLeads);
+    } finally {
       setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    }
+  };
+
+  useEffect(() => {
+    // Load initial data
+    fetchLeads("Burger Joints", "Austin, TX");
   }, []);
 
   const handleRowClick = (lead: Lead) => {
@@ -38,12 +58,12 @@ export default function Home() {
     <div className="flex h-screen w-full flex-col overflow-hidden relative">
       <header className="z-20 flex w-full flex-col shadow-sm">
         <Header />
-        <SearchSection />
+        <SearchSection onScan={fetchLeads} isLoading={isLoading} />
       </header>
 
       <main className="flex-1 overflow-auto bg-background-light p-6 dark:bg-background-dark">
         <div className="mx-auto max-w-[1400px]">
-          <StatsRow />
+          <StatsRow leads={leads} />
           <DataGrid
             leads={leads}
             isLoading={isLoading}

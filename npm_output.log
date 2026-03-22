@@ -1,9 +1,125 @@
 
-> temp_app@0.1.0 start
-> next start
+> temp_app@0.1.0 dev
+> next dev
 
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
   ▲ Next.js 14.2.35
-  - Local:        http://localhost:3000
+  - Local:        http://localhost:3003
 
  ✓ Starting...
- ✓ Ready in 411ms
+ ✓ Ready in 1858ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.7s (514 modules)
+ GET / 200 in 5422ms
+ ✓ Compiled in 690ms (247 modules)
+ ○ Compiling /api/scan ...
+ ⚠ ./src/app/api/scan/route.ts
+Attempted import error: 'getOrCreateUser' is not exported from '@/lib/supabase' (imported as 'getOrCreateUser').
+
+Import trace for requested module:
+./src/app/api/scan/route.ts
+ ⨯ TypeError: (0 , _lib_supabase__WEBPACK_IMPORTED_MODULE_2__.getOrCreateUser) is not a function
+    at GET (webpack-internal:///(rsc)/./src/app/api/scan/route.ts:44:67)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /app/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /app/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/app/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/app/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/app/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/app/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/app/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/scan?sector=Burger%20Joints&location=Austin%2C%20TX 500 in 7387ms
+ ⨯ TypeError: (0 , _lib_supabase__WEBPACK_IMPORTED_MODULE_2__.getOrCreateUser) is not a function
+    at GET (webpack-internal:///(rsc)/./src/app/api/scan/route.ts:44:67)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:57234
+    at /app/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /app/node_modules/next/dist/server/lib/trace/tracer.js:122:103
+    at NoopContextManager.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/app/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NextTracerImpl.trace (/app/node_modules/next/dist/server/lib/trace/tracer.js:122:28)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:48896
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:40958)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47472
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at Object.wrap (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:38293)
+    at /app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:47434
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)
+    at eT.execute (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:46881)
+    at eT.handle (/app/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:6:58771)
+    at doRender (/app/node_modules/next/dist/server/base-server.js:1366:60)
+    at cacheEntry.responseCache.get.routeKind (/app/node_modules/next/dist/server/base-server.js:1588:34)
+    at ResponseCache.get (/app/node_modules/next/dist/server/response-cache/index.js:49:26)
+    at DevServer.renderToResponseWithComponentsImpl (/app/node_modules/next/dist/server/base-server.js:1496:53)
+ GET /api/scan?sector=Burger%20Joints&location=Austin%2C%20TX 500 in 12ms
+ ✓ Compiled /api/scan in 229ms (258 modules)
+ GET / 200 in 368ms
+ ✓ Compiled /api/scan in 339ms (584 modules)
+Error fetching user: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+Error logging scan execution: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+ GET /api/scan?sector=Burger%20Joints&location=Austin%2C%20TX 200 in 2761ms
+ GET /api/scan?sector=Burger%20Joints&location=Austin%2C%20TX 200 in 2169ms
+Error fetching user: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
+Error logging scan execution: {
+  message: 'TypeError: fetch failed',
+  details: 'TypeError: fetch failed\n' +
+    '\n' +
+    'Caused by: Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co (ENOTFOUND)\n' +
+    'Error: getaddrinfo ENOTFOUND iebiimj3nyt5zfadujdizg.supabase.co\n' +
+    '    at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26)\n' +
+    '    at GetAddrInfoReqWrap.callbackTrampoline (node:internal/async_hooks:130:17)',
+  hint: '',
+  code: ''
+}
