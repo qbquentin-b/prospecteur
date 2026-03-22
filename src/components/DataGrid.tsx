@@ -16,10 +16,10 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
           <table className="w-full min-w-[1000px] text-left text-sm">
             <thead className="bg-slate-50/50 text-slate-500 dark:bg-slate-800/20 dark:text-slate-400">
               <tr>
-                <th className="px-6 py-4 font-semibold w-[30%]">Identity</th>
-                <th className="px-6 py-4 font-semibold w-[20%]">Reputation</th>
-                <th className="px-6 py-4 font-semibold w-[25%]">Tech Audit</th>
-                <th className="px-6 py-4 font-semibold w-[15%]">Opp Score</th>
+                <th className="px-6 py-4 font-semibold w-[30%]">Identité</th>
+                <th className="px-6 py-4 font-semibold w-[20%]">Réputation</th>
+                <th className="px-6 py-4 font-semibold w-[25%]">Audit Technique</th>
+                <th className="px-6 py-4 font-semibold w-[15%]">Score d&apos;Opp.</th>
                 <th className="px-6 py-4 font-semibold text-right w-[10%]">Actions</th>
               </tr>
             </thead>
@@ -65,10 +65,10 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
         <table className="w-full min-w-[1000px] text-left text-sm">
           <thead className="bg-slate-50/50 text-slate-500 dark:bg-slate-800/20 dark:text-slate-400">
             <tr>
-              <th className="px-6 py-4 font-semibold w-[30%]">Identity</th>
-              <th className="px-6 py-4 font-semibold w-[20%]">Reputation</th>
-              <th className="px-6 py-4 font-semibold w-[25%]">Tech Audit</th>
-              <th className="px-6 py-4 font-semibold w-[15%]">Opp Score</th>
+              <th className="px-6 py-4 font-semibold w-[30%]">Identité</th>
+              <th className="px-6 py-4 font-semibold w-[20%]">Réputation</th>
+              <th className="px-6 py-4 font-semibold w-[25%]">Audit Technique</th>
+              <th className="px-6 py-4 font-semibold w-[15%]">Score d&apos;Opp.</th>
               <th className="px-6 py-4 font-semibold text-right w-[10%]">Actions</th>
             </tr>
           </thead>
@@ -96,25 +96,25 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
                       </div>
                       <div className="flex gap-2 mt-2">
                         {lead.contact.email && lead.contact.email.length > 0 ? (
-                          <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" title="Email Found">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" title="Email Trouvé">
                             <span className="material-symbols-outlined text-[14px]">mail</span>
                           </div>
                         ) : (
-                          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" title="Email Missing">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" title="Email Manquant">
                             <span className="material-symbols-outlined text-[14px]">mail_lock</span>
                           </div>
                         )}
                         {lead.contact.phone && lead.contact.phone.length > 0 && (
-                          <div className="flex h-6 w-6 items-center justify-center rounded bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400" title="Phone Found">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400" title="Téléphone Trouvé">
                             <span className="material-symbols-outlined text-[14px]">call</span>
                           </div>
                         )}
                         {lead.contact.linkedin ? (
-                          <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" title="LinkedIn Found">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400" title="LinkedIn Trouvé">
                             <span className="material-symbols-outlined text-[14px]">work</span>
                           </div>
                         ) : (
-                          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" title="LinkedIn Missing">
+                          <div className="flex h-6 w-6 items-center justify-center rounded bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" title="LinkedIn Manquant">
                             <span className="material-symbols-outlined text-[14px]">person_off</span>
                           </div>
                         )}
@@ -124,16 +124,16 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
                   <td className="px-6 py-4 align-top">
                     <div className="flex flex-col gap-1">
                       {renderStars(lead.googleBusiness.rating)}
-                      <span className="text-xs text-slate-500">({lead.googleBusiness.reviewCount} reviews)</span>
+                      <span className="text-xs text-slate-500">({lead.googleBusiness.reviewCount} avis)</span>
                       {!lead.googleBusiness.isClaimed ? (
                         <span className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 bg-red-50 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 mt-1">
                           <span className="material-symbols-outlined text-[12px]">warning</span>
-                          Unclaimed GMB
+                          Non Revendiquée
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-600 bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400 mt-1">
                           <span className="material-symbols-outlined text-[12px]">verified</span>
-                          Claimed
+                          Revendiquée
                         </span>
                       )}
                     </div>
@@ -158,7 +158,7 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
                             {lead.techAudit.pageSpeedScore !== undefined && (
                               <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-slate-800">
                                 <span className="material-symbols-outlined text-[12px]">speed</span>
-                                {lead.techAudit.pageSpeedScore < 50 ? 'Slow' : lead.techAudit.pageSpeedScore < 80 ? 'Avg' : 'Fast'} ({lead.techAudit.pageSpeedScore}/100)
+                                {lead.techAudit.pageSpeedScore < 50 ? 'Lent' : lead.techAudit.pageSpeedScore < 80 ? 'Moyen' : 'Rapide'} ({lead.techAudit.pageSpeedScore}/100)
                               </span>
                             )}
                           </div>
@@ -175,12 +175,12 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
                         <>
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-slate-400 text-[18px]">public_off</span>
-                            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 italic">No Website Found</span>
+                            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 italic">Aucun Site Web</span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-slate-500">
                             <span className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded dark:bg-slate-800">
                               <span className="material-symbols-outlined text-[12px]">help</span>
-                              Unknown CMS
+                              CMS Inconnu
                             </span>
                           </div>
                           <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden dark:bg-slate-700 mt-1">
@@ -205,10 +205,10 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId 
                         <span className={`text-xs font-bold uppercase ${
                           isHot ? 'text-red-600 dark:text-red-400' : lead.opportunityScore >= 4 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'
                         }`}>
-                          {isHot ? 'Critical' : lead.opportunityScore >= 4 ? 'Medium' : 'Low'}
+                          {isHot ? 'Critique' : lead.opportunityScore >= 4 ? 'Moyen' : 'Faible'}
                         </span>
                         <span className="text-[10px] text-slate-500 leading-tight">
-                          {!lead.techAudit.hasWebsite ? 'Missing web presence' : !lead.googleBusiness.isClaimed ? 'High potential for web & SEO services' : 'Optimization opportunities'}
+                          {!lead.techAudit.hasWebsite ? 'Présence web manquante' : !lead.googleBusiness.isClaimed ? 'Haut potentiel web & SEO' : 'Opportunités d\'optimisation'}
                         </span>
                       </div>
                     </div>

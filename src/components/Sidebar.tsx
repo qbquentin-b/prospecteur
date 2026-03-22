@@ -51,7 +51,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                 )}
                 <button className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                   <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                  Copy Details
+                  Copier les détails
                 </button>
               </div>
             </div>
@@ -62,15 +62,15 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">analytics</span>
-              Quick Audit
+              Audit Rapide
             </h3>
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-lg border border-border-light bg-slate-50 p-3 text-center dark:border-border-dark dark:bg-slate-800/50">
-                <div className="text-[10px] font-semibold uppercase text-slate-500">Opp Score</div>
+                <div className="text-[10px] font-semibold uppercase text-slate-500">Score</div>
                 <div className={`mt-1 text-xl font-bold ${lead.opportunityScore >= 7 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                   {lead.opportunityScore.toFixed(1)}/10
                 </div>
-                <div className="mt-1 text-[10px] text-slate-400">{lead.opportunityScore >= 7 ? 'Hot' : 'Warm'}</div>
+                <div className="mt-1 text-[10px] text-slate-400">{lead.opportunityScore >= 7 ? 'Chaud' : 'Tiède'}</div>
               </div>
               <div className="rounded-lg border border-border-light bg-slate-50 p-3 text-center dark:border-border-dark dark:bg-slate-800/50">
                 <div className="text-[10px] font-semibold uppercase text-slate-500">Performance</div>
@@ -81,15 +81,15 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                   {lead.techAudit.pageSpeedScore ?? 'N/A'}
                 </div>
                 <div className="mt-1 text-[10px] text-slate-400">
-                  {lead.techAudit.pageSpeedScore ? (lead.techAudit.pageSpeedScore < 50 ? 'Poor' : lead.techAudit.pageSpeedScore < 80 ? 'Average' : 'Good') : 'No Site'}
+                  {lead.techAudit.pageSpeedScore ? (lead.techAudit.pageSpeedScore < 50 ? 'Poor' : lead.techAudit.pageSpeedScore < 80 ? 'Average' : 'Good') : 'Pas de Site'}
                 </div>
               </div>
               <div className="rounded-lg border border-border-light bg-slate-50 p-3 text-center dark:border-border-dark dark:bg-slate-800/50">
-                <div className="text-[10px] font-semibold uppercase text-slate-500">Security / Trust</div>
+                <div className="text-[10px] font-semibold uppercase text-slate-500">Sécurité</div>
                 <div className={`mt-1 text-xl font-bold ${lead.googleBusiness.isClaimed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {lead.googleBusiness.isClaimed ? '95' : '42'}
                 </div>
-                <div className="mt-1 text-[10px] text-slate-400">{lead.googleBusiness.isClaimed ? 'Claimed' : 'Unclaimed'}</div>
+                <div className="mt-1 text-[10px] text-slate-400">{lead.googleBusiness.isClaimed ? 'Revendiqué' : 'Non revendiqué'}</div>
               </div>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">store</span>
-              Google Business Profile
+              Profil Google Business
             </h3>
 
             {!lead.googleBusiness.isClaimed && (
@@ -107,9 +107,9 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                     <span className="material-symbols-outlined text-[20px]">warning</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-red-800 dark:text-red-300">Unclaimed Business Profile</h4>
+                    <h4 className="text-sm font-bold text-red-800 dark:text-red-300">Fiche Google non revendiquée</h4>
                     <p className="mt-1 text-xs text-red-700/80 dark:text-red-400/80 leading-relaxed">
-                      This business has not claimed their Google listing. This is a critical opportunity to offer GMB optimization services immediately.
+                      Cette entreprise n&apos;a pas revendiqué sa fiche Google. C&apos;est une excellente opportunité pour proposer des services d&apos;optimisation.
                     </p>
                   </div>
                 </div>
@@ -129,9 +129,9 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                     ))}
                   </div>
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">{lead.googleBusiness.rating.toFixed(1)}</span>
-                  <span className="text-xs text-slate-500">({lead.googleBusiness.reviewCount} reviews)</span>
+                  <span className="text-xs text-slate-500">({lead.googleBusiness.reviewCount} avis)</span>
                 </div>
-                <a className="text-xs font-medium text-primary hover:underline" href="#">View All</a>
+                <a className="text-xs font-medium text-primary hover:underline" href="#">Voir Tout</a>
               </div>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">contact_page</span>
-              Contact Discovery
+              Coordonnées
             </h3>
             <div className="flex flex-col gap-3">
               {lead.contact.email && lead.contact.email.map((email, idx) => (
@@ -150,7 +150,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-slate-900 dark:text-white"><a href={`mailto:${email}`}>{email}</a></div>
-                      <div className="text-[10px] text-slate-500">Discovered Email</div>
+                      <div className="text-[10px] text-slate-500">Email Trouvé</div>
                     </div>
                   </div>
                   <button className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
@@ -166,7 +166,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-slate-900 dark:text-white"><a href={`tel:${phone.replace(/\D/g,'')}`}>{phone}</a></div>
-                      <div className="text-[10px] text-slate-500">Phone Number</div>
+                      <div className="text-[10px] text-slate-500">Numéro de Téléphone</div>
                     </div>
                   </div>
                   <button className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
@@ -184,7 +184,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                 ) : (
                   <span className="flex flex-1 items-center justify-center gap-2 rounded border border-border-light bg-slate-50 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all dark:border-border-dark dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 opacity-50 cursor-not-allowed">
                     <span className="material-symbols-outlined text-[16px] text-slate-400">person_off</span>
-                    No Facebook
+                    Pas de Facebook
                   </span>
                 )}
 
@@ -196,7 +196,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                 ) : (
                   <span className="flex flex-1 items-center justify-center gap-2 rounded border border-border-light bg-slate-50 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all dark:border-border-dark dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 opacity-50 cursor-not-allowed">
                     <span className="material-symbols-outlined text-[16px] text-slate-400">person_off</span>
-                    No LinkedIn
+                    Pas de LinkedIn
                   </span>
                 )}
               </div>
@@ -230,8 +230,8 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
           <button className="group flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark p-4 text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
             <span className="material-symbols-outlined text-[24px] animate-pulse">auto_awesome</span>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-bold">Draft AI Outreach</span>
-              <span className="text-[10px] opacity-90 font-medium">Personalized for {lead.name}</span>
+              <span className="text-sm font-bold">Brouillon de message IA</span>
+              <span className="text-[10px] opacity-90 font-medium">Personnalisé pour {lead.name}</span>
             </div>
             <span className="material-symbols-outlined ml-auto opacity-70 group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </button>

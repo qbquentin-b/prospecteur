@@ -30,4 +30,6 @@ export interface Lead {
   googleBusiness: GoogleBusiness;
   techAudit: TechAudit;
   opportunityScore: number;
+  lat?: number;
+  lng?: number;
 }
