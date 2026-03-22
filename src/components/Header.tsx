@@ -1,6 +1,16 @@
+"use client";
+
 import React from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
   return (
     <div className="flex items-center justify-between px-6 py-3 border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-sm">
       <div className="flex items-center gap-3">
@@ -22,8 +32,13 @@ export default function Header() {
             <span className="material-symbols-outlined">person</span>
           </div>
           <div className="hidden md:block">
-            <p className="text-sm font-semibold leading-none">Alex Morgan</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Pro Plan</p>
+            <p className="text-sm font-semibold leading-none">Utilisateur</p>
+            <p
+              onClick={handleLogout}
+              className="text-xs text-slate-500 dark:text-slate-400 cursor-pointer hover:text-primary transition-colors"
+            >
+              Déconnexion
+            </p>
           </div>
         </div>
       </div>

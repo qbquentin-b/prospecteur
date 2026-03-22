@@ -22,26 +22,26 @@ export default function StatsRow({ leads }: StatsRowProps) {
         <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{totalLeads}</div>
         <div className="mt-1 flex items-center gap-1 text-xs text-green-600">
           <span className="material-symbols-outlined text-[14px]">trending_up</span>
-          <span>+12% vs last scan</span>
+          <span>+12% vs dernier scan</span>
         </div>
       </div>
       <div className="rounded-xl border border-border-light bg-surface-light p-4 shadow-sm dark:border-border-dark dark:bg-surface-dark">
-        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">High Opportunity</div>
+        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Haute Opportunité</div>
         <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{highOpp}</div>
         <div className="mt-1 flex items-center gap-1 text-xs text-primary">
           <span className="material-symbols-outlined text-[14px]">local_fire_department</span>
-          <span>Hot leads</span>
+          <span>Leads chauds</span>
         </div>
       </div>
       <div className="rounded-xl border border-border-light bg-surface-light p-4 shadow-sm dark:border-border-dark dark:bg-surface-dark">
-        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Missing Websites</div>
+        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Sites Web Manquants</div>
         <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{missingWebsites}</div>
         <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div className={`h-full bg-red-500`} style={{ width: `${missingWebsitesPct}%` }}></div>
         </div>
       </div>
       <div className="rounded-xl border border-border-light bg-surface-light p-4 shadow-sm dark:border-border-dark dark:bg-surface-dark">
-        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Unclaimed GMB</div>
+        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Fiches Non Revendiquées</div>
         <div className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{unclaimedGmb}</div>
         <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div className={`h-full bg-orange-500`} style={{ width: `${unclaimedGmbPct}%` }}></div>

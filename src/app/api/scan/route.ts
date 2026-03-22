@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sector = searchParams.get('sector');
   const location = searchParams.get('location');
+  const radius = parseInt(searchParams.get('radius') || '5', 10);
+  const lat = searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : null;
+  const lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : null;
 
   // Basic authentication using Authorization header
   const authHeader = req.headers.get('Authorization');
@@ -46,20 +49,41 @@ export async function GET(req: NextRequest) {
   let places = [];
 
   if (API_KEY) {
-    const query = `${sector} in ${location}`;
+    // If sector is "All", simply search for businesses in the location
+    const query = sector.toLowerCase() === 'all'
+      ? `businesses`
+      : `${sector}`;
     const placesUrl = `https://places.googleapis.com/v1/places:searchText`;
 
     try {
+      // Build location restriction if lat/lng are provided
+      const locationRestriction = (lat != null && lng != null) ? {
+        circle: {
+          center: { latitude: lat, longitude: lng },
+          radius: radius * 1000.0 // meters
+        }
+      } : undefined;
+
+      // Construct body with or without location restriction
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bodyPayload: any = {
+        textQuery: `${query} in ${location}` // Fallback text query for better results sometimes
+      };
+
+      if (locationRestriction) {
+         bodyPayload.locationRestriction = locationRestriction;
+         // When using location restriction, textQuery alone might be enough or we just use the query
+         bodyPayload.textQuery = query;
+      }
+
       const res = await fetch(placesUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': API_KEY,
-          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.primaryTypeDisplayName'
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.primaryTypeDisplayName,places.location'
         },
-        body: JSON.stringify({
-          textQuery: query,
-        })
+        body: JSON.stringify(bodyPayload)
       });
       const data = await res.json();
       // Map the new API structure to our internal structure
@@ -72,6 +96,8 @@ export async function GET(req: NextRequest) {
         user_ratings_total: p.userRatingCount || 0,
         website: p.websiteUri,
         category: p.primaryTypeDisplayName?.text || sector,
+        lat: p.location?.latitude,
+        lng: p.location?.longitude
       }));
     } catch (e) {
       console.error("Places API error, falling back to mock:", e);
@@ -80,15 +106,19 @@ export async function GET(req: NextRequest) {
 
   if (places.length === 0) {
     // Mock the Places response if no API key is set OR if fetch failed (Graceful Degradation)
+    const mockCategory = sector.toLowerCase() === 'all' ? 'Business' : sector;
     places = Array.from({ length: 15 }).map((_, i) => ({
       place_id: `place_${i}`,
-      name: `${sector} ${location} ${i + 1}`,
+      name: `${mockCategory} ${location} ${i + 1}`,
       formatted_address: `123 Main St, ${location}`,
       rating: Math.random() * 2 + 3, // 3.0 to 5.0
       user_ratings_total: Math.floor(Math.random() * 200),
       // Randomly assign some a website
       website: Math.random() > 0.3 ? `https://example${i}.com` : undefined,
-      category: sector as string,
+      category: mockCategory as string,
+      // Provide some mock spread around the center
+      lat: lat ? lat + (Math.random() - 0.5) * (radius / 111) : undefined,
+      lng: lng ? lng + (Math.random() - 0.5) * (radius / (111 * Math.cos(lat || 0))) : undefined,
     }));
   }
 
@@ -104,6 +134,8 @@ export async function GET(req: NextRequest) {
       name: place.name,
       address: place.formatted_address || location as string,
       contact: generateMockContact(place.name),
+      lat: place.lat,
+      lng: place.lng,
       googleBusiness: {
         isClaimed,
         rating: place.rating || 0,
