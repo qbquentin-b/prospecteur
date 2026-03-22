@@ -1,6 +1,22 @@
 import React from 'react';
 
-export default function SearchSection() {
+import { useState } from 'react';
+
+interface SearchSectionProps {
+  onScan: (sector: string, location: string) => void;
+  isLoading: boolean;
+}
+
+export default function SearchSection({ onScan, isLoading }: SearchSectionProps) {
+  const [sector, setSector] = useState("Burger Joints");
+  const [location, setLocation] = useState("Austin, TX");
+
+  const handleScan = () => {
+    if (sector.trim() && location.trim()) {
+      onScan(sector, location);
+    }
+  };
+
   return (
     <div className="flex flex-col border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
       <div className="flex flex-col gap-4 px-6 py-4 md:flex-row md:items-end">
@@ -13,7 +29,9 @@ export default function SearchSection() {
                 className="h-11 w-full rounded-lg border border-border-light bg-background-light pl-10 pr-4 text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary dark:border-border-dark dark:bg-background-dark dark:text-white dark:placeholder-slate-500"
                 placeholder="e.g. Dentists, Restaurants"
                 type="text"
-                defaultValue="Burger Joints"
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleScan()}
               />
             </div>
           </div>
@@ -25,14 +43,24 @@ export default function SearchSection() {
                 className="h-11 w-full rounded-lg border border-border-light bg-background-light pl-10 pr-4 text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary dark:border-border-dark dark:bg-background-dark dark:text-white dark:placeholder-slate-500"
                 placeholder="City, State or Zip"
                 type="text"
-                defaultValue="Austin, TX"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleScan()}
               />
             </div>
           </div>
         </div>
-        <button className="flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-lg active:scale-95">
-          <span className="material-symbols-outlined text-[20px]">search</span>
-          Scan Area
+        <button
+          onClick={handleScan}
+          disabled={isLoading}
+          className={`flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-lg active:scale-95 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isLoading ? (
+            <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+          ) : (
+            <span className="material-symbols-outlined text-[20px]">search</span>
+          )}
+          {isLoading ? 'Scanning...' : 'Scan Area'}
         </button>
       </div>
       <div className="flex items-center gap-2 overflow-x-auto px-6 pb-4 scrollbar-hide">
