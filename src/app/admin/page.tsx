@@ -37,9 +37,11 @@ export default function Admin() {
         .eq('id', session.user.id)
         .single();
 
+      // If the user hasn't explicitly set themselves as admin in the database,
+      // show them an error explicitly explaining what to do instead of a confusing redirect.
       if (!currentUser?.is_admin) {
-        // Redirection if not admin
-        router.push('/');
+        setError("Accès refusé. Vous devez cocher la case 'is_admin' à TRUE dans la table 'users' de votre base de données Supabase pour votre compte.");
+        setLoading(false);
         return;
       }
 
