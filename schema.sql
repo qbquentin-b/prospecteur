@@ -10,7 +10,19 @@ CREATE TABLE public.users (
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
   full_name TEXT,
+  tokens INTEGER DEFAULT 100, -- Nouveauté: tokens de recherche alloués par défaut
+  is_admin BOOLEAN DEFAULT FALSE, -- Nouveauté: contrôle d'accès au dashboard admin
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table des favoris
+CREATE TABLE public.favorites (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  lead_id TEXT NOT NULL,
+  lead_data JSONB NOT NULL, -- Pour sauvegarder un snapshot des données du prospect
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, lead_id)
 );
 
 -- Table to log scan executions
@@ -28,6 +40,7 @@ CREATE TABLE public.scan_executions (
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.scan_executions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
 
 -- Basic RLS Policies (example)
 -- Allow authenticated users to view their own profile
@@ -76,6 +89,46 @@ CREATE POLICY "Users can view their own scan logs"
   FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
+
+-- Favoris RLS
+CREATE POLICY "Users can view their own favorites"
+  ON public.favorites
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own favorites"
+  ON public.favorites
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own favorites"
+  ON public.favorites
+  FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Admin RLS (Les administrateurs peuvent voir tous les profils et logs)
+CREATE POLICY "Admins can view all users"
+  ON public.users
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users WHERE id = auth.uid() AND is_admin = true
+    )
+  );
+
+CREATE POLICY "Admins can view all logs"
+  ON public.scan_executions
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users WHERE id = auth.uid() AND is_admin = true
+    )
+  );
 
 -- Optional: Create a trigger to automatically create a public.users profile
 -- whenever a new user signs up via Supabase Auth.
