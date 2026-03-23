@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState(''); // can be email or username
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -17,13 +17,32 @@ export default function Login() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+    let loginEmail = identifier;
+
+    // Check if the identifier is an email (basic regex)
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+    if (!isEmail) {
+      // Use the RPC to safely fetch the email associated with the username
+      const { data: foundEmail, error: lookupError } = await supabase
+        .rpc('get_email_by_username', { p_username: identifier });
+
+      if (lookupError || !foundEmail) {
+        setError("Nom d&apos;utilisateur introuvable.");
+        setLoading(false);
+        return;
+      }
+
+      loginEmail = foundEmail;
+    }
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
       password,
     });
 
-    if (error) {
-      setError(error.message);
+    if (authError) {
+      setError(authError.message);
       setLoading(false);
       return;
     }
@@ -68,19 +87,19 @@ export default function Login() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Adresse email
+              <label htmlFor="identifier" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Adresse email ou Nom d&apos;utilisateur
               </label>
               <div className="mt-1 relative">
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">mail</span>
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">person</span>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
+                  id="identifier"
+                  name="identifier"
+                  type="text"
+                  autoComplete="username"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="block w-full pl-10 h-11 appearance-none rounded-lg border border-border-light bg-background-light px-3 py-2 placeholder-slate-400 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
                 />
               </div>

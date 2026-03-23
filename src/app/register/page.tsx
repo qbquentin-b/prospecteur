@@ -7,6 +7,8 @@ import Link from 'next/link';
 
 export default function Register() {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,6 +22,12 @@ export default function Register() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username: username,
+          full_name: fullName,
+        }
+      }
     });
 
     if (error) {
@@ -66,6 +74,41 @@ export default function Register() {
                 </div>
               </div>
             )}
+
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Nom d&apos;utilisateur
+              </label>
+              <div className="mt-1 relative">
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">person</span>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="block w-full pl-10 h-11 appearance-none rounded-lg border border-border-light bg-background-light px-3 py-2 placeholder-slate-400 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Nom complet (optionnel)
+              </label>
+              <div className="mt-1 relative">
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">badge</span>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="block w-full pl-10 h-11 appearance-none rounded-lg border border-border-light bg-background-light px-3 py-2 placeholder-slate-400 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm dark:border-border-dark dark:bg-background-dark dark:text-white"
+                />
+              </div>
+            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
