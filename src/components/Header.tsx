@@ -8,6 +8,7 @@ import Link from 'next/link';
 export default function Header() {
   const router = useRouter();
   const [userName, setUserName] = useState("Utilisateur");
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -20,7 +21,11 @@ export default function Header() {
           .single();
 
         if (data) {
-          setUserName(data.full_name || data.username || session.user.email || "Utilisateur");
+          // Use username as the primary display, then full_name, then email
+          setUserName(data.username || data.full_name || session.user.email || "Utilisateur");
+        } else if (session.user.user_metadata?.username) {
+          // Fallback to metadata if DB lookup fails (e.g. before sync)
+          setUserName(session.user.user_metadata.username);
         }
       }
     };
@@ -42,11 +47,28 @@ export default function Header() {
         </div>
         <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">LeadScanner</h1>
       </div>
-      <div className="flex items-center gap-3">
-        <button className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-surface-light dark:border-surface-dark"></span>
-        </button>
+      <div className="flex items-center gap-3 relative">
+        <div className="relative">
+          <button
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+          >
+            <span className="material-symbols-outlined">notifications</span>
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border-2 border-surface-light dark:border-surface-dark"></span>
+          </button>
+
+          {isNotifOpen && (
+            <div className="absolute right-0 mt-2 w-64 rounded-xl shadow-lg bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark overflow-hidden z-50">
+              <div className="px-4 py-3 border-b border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800/50">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</h3>
+              </div>
+              <div className="p-4 text-center">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Aucune nouvelle notification.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <Link href="/settings" className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
           <span className="material-symbols-outlined">settings</span>
         </Link>
