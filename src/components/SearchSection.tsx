@@ -7,9 +7,12 @@ interface SearchSectionProps {
   isLoading: boolean;
   isMapVisible: boolean;
   onToggleMap: () => void;
+  activeFilters: string[];
+  onToggleFilter: (filterId: string) => void;
+  onLoadLastScan: () => void;
 }
 
-export default function SearchSection({ onScan, isLoading, isMapVisible, onToggleMap }: SearchSectionProps) {
+export default function SearchSection({ onScan, isLoading, isMapVisible, onToggleMap, activeFilters, onToggleFilter, onLoadLastScan }: SearchSectionProps) {
   const [sector, setSector] = useState("Restaurants");
   const [location, setLocation] = useState("Paris, FR");
   const [radius, setRadius] = useState(5);
@@ -76,46 +79,58 @@ export default function SearchSection({ onScan, isLoading, isMapVisible, onToggl
             </div>
           </div>
         </div>
-        <button
-          onClick={handleScan}
-          disabled={isLoading}
-          className={`flex h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-lg active:scale-95 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {isLoading ? (
-            <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
-          ) : (
-            <span className="material-symbols-outlined text-[20px]">search</span>
-          )}
-          {isLoading ? 'Analyse en cours...' : 'Scanner la zone'}
-        </button>
+        <div className="flex gap-2 flex-col sm:flex-row w-full md:w-auto">
+          <button
+            onClick={onLoadLastScan}
+            disabled={isLoading}
+            className="flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:bg-slate-300 dark:hover:bg-slate-600 active:scale-95 disabled:opacity-50"
+            title="Recharger le dernier scan sans utiliser de tokens"
+          >
+            <span className="material-symbols-outlined text-[20px]">history</span>
+            <span className="hidden xl:inline">Dernier Scan</span>
+          </button>
+          <button
+            onClick={handleScan}
+            disabled={isLoading}
+            className={`flex flex-1 md:flex-none h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-lg active:scale-95 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {isLoading ? (
+              <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+            ) : (
+              <span className="material-symbols-outlined text-[20px]">search</span>
+            )}
+            {isLoading ? 'Analyse...' : 'Scanner la zone'}
+          </button>
+        </div>
       </div>
       <div className="flex items-center gap-2 overflow-x-auto px-6 pb-4 scrollbar-hide">
         <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase tracking-wide mr-2">Filtres:</span>
-        <button className="group flex items-center gap-1.5 rounded-full border border-border-light bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary">
-          <span className="material-symbols-outlined text-[16px]">public_off</span>
-          Pas de site web
-          <span className="material-symbols-outlined ml-1 text-[14px] text-slate-400 group-hover:text-primary">close</span>
-        </button>
-        <button className="group flex items-center gap-1.5 rounded-full border border-border-light bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary">
-          <span className="material-symbols-outlined text-[16px]">star_half</span>
-          Note &lt; 3.0
-          <span className="material-symbols-outlined ml-1 text-[14px] text-slate-400 group-hover:text-primary">close</span>
-        </button>
-        <button className="group flex items-center gap-1.5 rounded-full border border-border-light bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary">
-          <span className="material-symbols-outlined text-[16px]">mark_email_unread</span>
-          Email manquant
-          <span className="material-symbols-outlined ml-1 text-[14px] text-slate-400 group-hover:text-primary">close</span>
-        </button>
-        <button className="group flex items-center gap-1.5 rounded-full border border-border-light bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary">
-          <span className="material-symbols-outlined text-[16px]">phone_disabled</span>
-          Sans Téléphone
-          <span className="material-symbols-outlined ml-1 text-[14px] text-slate-400 group-hover:text-primary">close</span>
-        </button>
-        <button className="group flex items-center gap-1.5 rounded-full border border-border-light bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary">
-          <span className="material-symbols-outlined text-[16px]">location_off</span>
-          GMB Non revendiqué
-          <span className="material-symbols-outlined ml-1 text-[14px] text-slate-400 group-hover:text-primary">close</span>
-        </button>
+
+        {[
+          { id: 'no-website', icon: 'public_off', label: 'Pas de site web' },
+          { id: 'low-rating', icon: 'star_half', label: 'Note < 3.0' },
+          { id: 'no-email', icon: 'mark_email_unread', label: 'Email manquant' },
+          { id: 'no-phone', icon: 'phone_disabled', label: 'Sans Téléphone' },
+          { id: 'unclaimed-gmb', icon: 'location_off', label: 'GMB Non revendiqué' },
+        ].map(filter => {
+          const isActive = activeFilters.includes(filter.id);
+          return (
+            <button
+              key={filter.id}
+              onClick={() => onToggleFilter(filter.id)}
+              className={`group flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                isActive
+                ? 'border-primary bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-dark'
+                : 'border-border-light bg-white text-slate-600 hover:border-primary hover:text-primary dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:border-primary'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{filter.icon}</span>
+              {filter.label}
+              {isActive && <span className="material-symbols-outlined ml-1 text-[14px] text-primary cursor-pointer">close</span>}
+            </button>
+          );
+        })}
+
         <button
           className="flex items-center gap-1 rounded-full border border-dashed border-slate-300 bg-transparent px-3 py-1.5 text-xs font-medium text-slate-500 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors focus:ring-2 focus:ring-primary focus:outline-none focus:ring-offset-1 dark:focus:ring-offset-background-dark"
           onClick={() => alert("Fonctionnalité 'Créer un filtre personnalisé' bientôt disponible ! (Sprint 3)")}

@@ -23,6 +23,63 @@ export default function Home() {
   const [mapCenter, setMapCenter] = useState<[number, number]>([48.8566, 2.3522]); // Default to Paris
   const [mapRadius, setMapRadius] = useState<number>(5);
   const [isMapVisible, setIsMapVisible] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [lastScanParams, setLastScanParams] = useState<{sector: string, location: string, radiusKm: number} | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+  // Load favorites on session load
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!session?.user) return;
+      const { data } = await supabase
+        .from('favorites')
+        .select('lead_id')
+        .eq('user_id', session.user.id);
+
+      if (data) {
+        setFavoriteIds(data.map(f => f.lead_id));
+      }
+    };
+    if (session) fetchFavorites();
+  }, [session]);
+
+  const toggleFavorite = async (lead: Lead) => {
+    if (!session?.user) return;
+
+    const isFavorite = favoriteIds.includes(lead.id);
+
+    // Optimistic UI update
+    setFavoriteIds(prev =>
+      isFavorite ? prev.filter(id => id !== lead.id) : [...prev, lead.id]
+    );
+
+    if (isFavorite) {
+      // Remove
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('lead_id', lead.id);
+    } else {
+      // Add
+      await supabase
+        .from('favorites')
+        .insert({
+          user_id: session.user.id,
+          lead_id: lead.id,
+          lead_data: lead
+        });
+    }
+  };
+
+  const filteredLeads = leads.filter(lead => {
+    if (activeFilters.includes('no-website') && lead.techAudit.hasWebsite) return false;
+    if (activeFilters.includes('low-rating') && lead.googleBusiness.rating >= 3.0) return false;
+    if (activeFilters.includes('no-email') && lead.contact.email && lead.contact.email.length > 0) return false;
+    if (activeFilters.includes('no-phone') && lead.contact.phone && lead.contact.phone.length > 0) return false;
+    if (activeFilters.includes('unclaimed-gmb') && lead.googleBusiness.isClaimed) return false;
+    return true;
+  });
 
   const fetchCoordinates = async (location: string) => {
     try {
@@ -42,6 +99,7 @@ export default function Home() {
     setLeads([]);
     setSelectedLead(null);
     setIsSidebarOpen(false);
+    setLastScanParams({ sector, location, radiusKm });
 
     try {
       setMapRadius(radiusKm);
@@ -121,6 +179,26 @@ export default function Home() {
     setTimeout(() => setSelectedLead(null), 300); // Wait for transition
   };
 
+  const toggleFilter = (filterId: string) => {
+    setActiveFilters(prev =>
+      prev.includes(filterId) ? prev.filter(id => id !== filterId) : [...prev, filterId]
+    );
+  };
+
+  const loadLastScan = () => {
+    if (lastScanParams) {
+      fetchLeads(lastScanParams.sector, lastScanParams.location, lastScanParams.radiusKm);
+    } else {
+      // Load mock data explicitly as "last scan" if none exists yet in session
+      setIsLoading(true);
+      setLeads([]);
+      setTimeout(() => {
+        setLeads(mockLeads);
+        setIsLoading(false);
+      }, 800);
+    }
+  };
+
   // Dynamically import map with ssr: false
   const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[400px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
 
@@ -137,22 +215,27 @@ export default function Home() {
           isLoading={isLoading}
           isMapVisible={isMapVisible}
           onToggleMap={() => setIsMapVisible(!isMapVisible)}
+          activeFilters={activeFilters}
+          onToggleFilter={toggleFilter}
+          onLoadLastScan={loadLastScan}
         />
       </header>
 
       <main className="flex-1 overflow-auto bg-background-light p-6 dark:bg-background-dark">
         <div className="mx-auto max-w-[1400px]">
-          <StatsRow leads={leads} />
+          <StatsRow leads={filteredLeads} />
           {isMapVisible && (
             <div className="mb-6 transition-all duration-300 ease-in-out origin-top">
-              <Map center={mapCenter} radiusKm={mapRadius} leads={leads} onCenterChange={handleCenterChange} />
+              <Map center={mapCenter} radiusKm={mapRadius} leads={filteredLeads} onCenterChange={handleCenterChange} />
             </div>
           )}
           <DataGrid
-            leads={leads}
+            leads={filteredLeads}
             isLoading={isLoading}
             onRowClick={handleRowClick}
             selectedLeadId={selectedLead?.id}
+            onToggleFavorite={toggleFavorite}
+            favoriteIds={favoriteIds}
           />
         </div>
       </main>

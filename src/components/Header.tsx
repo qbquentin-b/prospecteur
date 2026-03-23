@@ -4,11 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 
 export default function Header() {
   const router = useRouter();
   const [userName, setUserName] = useState("Utilisateur");
+  const [userTokens, setUserTokens] = useState<number | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -16,13 +19,14 @@ export default function Header() {
       if (session?.user) {
         const { data } = await supabase
           .from('users')
-          .select('full_name, username')
+          .select('full_name, username, tokens')
           .eq('id', session.user.id)
           .single();
 
         if (data) {
           // Use username as the primary display, then full_name, then email
           setUserName(data.username || data.full_name || session.user.email || "Utilisateur");
+          setUserTokens(data.tokens);
         } else if (session.user.user_metadata?.username) {
           // Fallback to metadata if DB lookup fails (e.g. before sync)
           setUserName(session.user.user_metadata.username);
@@ -69,12 +73,36 @@ export default function Header() {
           )}
         </div>
 
-        <Link href="/settings" className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+        <Link href="/docs" className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors" title="Documentation">
+          <span className="material-symbols-outlined">help</span>
+        </Link>
+
+        <Link href="/settings" className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors" title="Paramètres">
           <span className="material-symbols-outlined">settings</span>
         </Link>
+
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+          title="Basculer le thème"
+        >
+          <span className="material-symbols-outlined">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+        </button>
+
         <div className="ml-2 flex items-center gap-2 pl-2 border-l border-border-light dark:border-border-dark">
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 uppercase font-bold text-xs">
-            {userName.substring(0, 2)}
+          {userTokens !== null && (
+            <div className="hidden sm:flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 px-2 py-1 rounded-md text-xs font-bold border border-amber-200 dark:border-amber-900/30 mr-2" title="Jetons de recherche restants">
+              <span className="material-symbols-outlined text-[14px]">toll</span>
+              {userTokens}
+            </div>
+          )}
+          <div className="h-8 w-8 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 border border-slate-200 dark:border-slate-700">
+            {/* Hand-drawn animal avatar via DiceBear API */}
+            <img
+              src={`https://api.dicebear.com/9.x/fun-emoji/svg?seed=${userName}`}
+              alt="Avatar"
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="hidden md:block">
             <p className="text-sm font-semibold leading-none truncate max-w-[150px]" title={userName}>{userName}</p>
