@@ -113,10 +113,25 @@ export default function Home() {
         lng = coords[1];
       }
 
-      const response = await fetch(`/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}&radius=${radiusKm}&lat=${lat}&lng=${lng}`);
+      const headers: Record<string, string> = {};
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}&radius=${radiusKm}&lat=${lat}&lng=${lng}`, {
+        headers
+      });
+
       if (response.ok) {
         const data = await response.json();
         setLeads(data);
+
+        // Dispatch an event to update tokens in Header
+        window.dispatchEvent(new Event('token-consumed'));
+
+      } else if (response.status === 403) {
+        alert("Vous n'avez plus de tokens de recherche disponibles.");
       } else {
         console.error('Failed to fetch leads');
         // Fallback to mock data on error for demo purposes

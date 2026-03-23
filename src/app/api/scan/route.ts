@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { detectCMS, fetchPageSpeed, calculateScore } from '@/lib/scanner';
 import { Lead } from '@/types/lead';
-import { logScanExecution, getOrCreateUser } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 // Helper to extract email and phone from text or basic HTML (basic fallback)
 // For a real implementation, you'd use a robust scraping tool or Places details API.
@@ -22,26 +22,63 @@ export async function GET(req: NextRequest) {
   const lat = searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : null;
   const lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : null;
 
-  // Basic authentication using Authorization header
-  const authHeader = req.headers.get('Authorization');
-  let userEmail = 'demo_user@example.com';
-
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    userEmail = authHeader.substring(7); // using the token directly as email for simplicity
-  }
-
   if (!sector || !location) {
     return NextResponse.json({ error: 'Missing sector or location' }, { status: 400 });
   }
 
-  // 1. Get/Create User and Log the execution to Supabase (Graceful Degradation)
-  // We don't await this so it doesn't block the main thread if there are network issues (like ENOTFOUND).
-  getOrCreateUser(userEmail).then(user => {
-    const userId = user?.id || 'demo_user';
-    return logScanExecution(userId, sector, location);
-  }).catch(err => {
-    console.error("Silent Supabase Error:", err);
-  });
+  // 1. Check User Tokens and Authenticate
+  // En production, il est recommandé de passer un JWT valide dans l'en-tête Authorization.
+  // Pour le démonstrateur "dev_bypass", on utilise une identification simplifiée,
+  // mais une vraie appli devrait utiliser un auth middleware robuste.
+  let userId = null;
+  const authHeader = req.headers.get('Authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (user) {
+      userId = user.id;
+    }
+  }
+
+  // Token management logic
+  if (userId) {
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users')
+      .select('tokens')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !userProfile) {
+      console.error("Error fetching profile tokens", profileError);
+    } else {
+      if (userProfile.tokens <= 0) {
+        return NextResponse.json({ error: 'Plus de tokens disponibles. Veuillez recharger votre compte.' }, { status: 403 });
+      }
+
+      // Deduct 1 token and log the scan
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ tokens: userProfile.tokens - 1 })
+        .eq('id', userId);
+
+      if (updateError) console.error("Error updating tokens", updateError);
+
+      const { error: logError } = await supabase
+        .from('scan_executions')
+        .insert({
+          user_id: userId,
+          sector,
+          location,
+          radius_km: radius,
+          lat,
+          lng
+        });
+
+      if (logError) console.error("Error logging scan execution", logError);
+    }
+  } else {
+    console.warn("Scan exécuté sans authentification (dev_bypass ou pas de token fourni). Aucun token déduit.");
+  }
 
   // 2. Google Places API Search (Text Search - New API)
   // We use the new Places API endpoint as requested to ensure we get the websiteUri field.

@@ -10,6 +10,7 @@ export default function Header() {
   const router = useRouter();
   const [userName, setUserName] = useState("Utilisateur");
   const [userTokens, setUserTokens] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -19,7 +20,7 @@ export default function Header() {
       if (session?.user) {
         const { data } = await supabase
           .from('users')
-          .select('full_name, username, tokens')
+          .select('full_name, username, tokens, is_admin')
           .eq('id', session.user.id)
           .single();
 
@@ -27,6 +28,7 @@ export default function Header() {
           // Use username as the primary display, then full_name, then email
           setUserName(data.username || data.full_name || session.user.email || "Utilisateur");
           setUserTokens(data.tokens);
+          setIsAdmin(data.is_admin);
         } else if (session.user.user_metadata?.username) {
           // Fallback to metadata if DB lookup fails (e.g. before sync)
           setUserName(session.user.user_metadata.username);
@@ -34,6 +36,14 @@ export default function Header() {
       }
     };
     fetchUser();
+
+    // Listen for token consumption events to update UI instantly
+    const handleTokenConsumed = () => {
+      setUserTokens(prev => prev !== null && prev > 0 ? prev - 1 : prev);
+    };
+
+    window.addEventListener('token-consumed', handleTokenConsumed);
+    return () => window.removeEventListener('token-consumed', handleTokenConsumed);
   }, []);
 
   const handleLogout = async () => {
@@ -72,6 +82,12 @@ export default function Header() {
             </div>
           )}
         </div>
+
+        {isAdmin && (
+          <Link href="/admin" className="relative rounded-full p-2 text-slate-500 hover:bg-amber-100 hover:text-amber-600 dark:text-slate-400 dark:hover:bg-amber-900/30 dark:hover:text-amber-400 transition-colors" title="Dashboard Admin">
+            <span className="material-symbols-outlined">admin_panel_settings</span>
+          </Link>
+        )}
 
         <Link href="/docs" className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors" title="Documentation">
           <span className="material-symbols-outlined">help</span>
