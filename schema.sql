@@ -8,6 +8,8 @@
 CREATE TABLE public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  full_name TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -42,6 +44,25 @@ CREATE POLICY "Users can update their own profile"
   TO authenticated
   USING (auth.uid() = id);
 
+-- Allow anyone to lookup email by username (needed for login by username)
+-- Security Definer function to allow unauthenticated users to lookup an email
+-- by username during the login flow without exposing the entire users table.
+CREATE OR REPLACE FUNCTION public.get_email_by_username(p_username TEXT)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  found_email TEXT;
+BEGIN
+  SELECT email INTO found_email
+  FROM public.users
+  WHERE username = p_username;
+
+  RETURN found_email;
+END;
+$$;
+
 -- Allow authenticated users to insert their own scan logs
 CREATE POLICY "Users can insert their own scan logs"
   ON public.scan_executions
@@ -61,8 +82,13 @@ CREATE POLICY "Users can view their own scan logs"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (id, email)
-  VALUES (new.id, new.email);
+  INSERT INTO public.users (id, email, username, full_name)
+  VALUES (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'username',
+    new.raw_user_meta_data->>'full_name'
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -70,3 +96,20 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Trigger to sync email updates from auth.users to public.users
+CREATE OR REPLACE FUNCTION public.handle_updated_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF old.email <> new.email THEN
+    UPDATE public.users
+    SET email = new.email
+    WHERE id = new.id;
+  END IF;
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_user();
