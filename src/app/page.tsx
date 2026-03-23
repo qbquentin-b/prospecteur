@@ -22,6 +22,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([48.8566, 2.3522]); // Default to Paris
   const [mapRadius, setMapRadius] = useState<number>(5);
+  const [isMapVisible, setIsMapVisible] = useState(false);
 
   const fetchCoordinates = async (location: string) => {
     try {
@@ -131,15 +132,22 @@ export default function Home() {
     <div className="flex h-screen w-full flex-col overflow-hidden relative">
       <header className="z-20 flex w-full flex-col shadow-sm">
         <Header />
-        <SearchSection onScan={fetchLeads} isLoading={isLoading} />
+        <SearchSection
+          onScan={fetchLeads}
+          isLoading={isLoading}
+          isMapVisible={isMapVisible}
+          onToggleMap={() => setIsMapVisible(!isMapVisible)}
+        />
       </header>
 
       <main className="flex-1 overflow-auto bg-background-light p-6 dark:bg-background-dark">
         <div className="mx-auto max-w-[1400px]">
           <StatsRow leads={leads} />
-          <div className="mb-6">
-            <Map center={mapCenter} radiusKm={mapRadius} leads={leads} onCenterChange={handleCenterChange} />
-          </div>
+          {isMapVisible && (
+            <div className="mb-6 transition-all duration-300 ease-in-out origin-top">
+              <Map center={mapCenter} radiusKm={mapRadius} leads={leads} onCenterChange={handleCenterChange} />
+            </div>
+          )}
           <DataGrid
             leads={leads}
             isLoading={isLoading}
