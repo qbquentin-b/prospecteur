@@ -71,10 +71,10 @@ export default function SearchSection({ onScan, isLoading, isMapVisible, onToggl
               />
               <button
                 onClick={onToggleMap}
-                className={`absolute right-2 top-1.5 p-1.5 rounded-md transition-colors ${isMapVisible ? 'bg-primary text-white' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors flex items-center justify-center ${isMapVisible ? 'bg-primary text-white' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                 title="Afficher/Masquer la carte"
               >
-                <span className="material-symbols-outlined text-[18px]">map</span>
+                <span className="material-symbols-outlined text-[20px]">map</span>
               </button>
             </div>
           </div>
