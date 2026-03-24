@@ -7,7 +7,6 @@ import StatsRow from "../components/StatsRow";
 import DataGrid from "../components/DataGrid";
 import Sidebar from "../components/Sidebar";
 import dynamic from 'next/dynamic';
-import { mockLeads } from "../data/mockData";
 import { Lead } from "../types/lead";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -134,12 +133,11 @@ export default function Home() {
         alert("Vous n'avez plus de tokens de recherche disponibles.");
       } else {
         console.error('Failed to fetch leads');
-        // Fallback to mock data on error for demo purposes
-        setLeads(mockLeads);
+        setLeads([]);
       }
     } catch (error) {
       console.error('Error fetching leads:', error);
-      setLeads(mockLeads);
+      setLeads([]);
     } finally {
       setIsLoading(false);
     }
@@ -204,13 +202,7 @@ export default function Home() {
     if (lastScanParams) {
       fetchLeads(lastScanParams.sector, lastScanParams.location, lastScanParams.radiusKm);
     } else {
-      // Load mock data explicitly as "last scan" if none exists yet in session
-      setIsLoading(true);
-      setLeads([]);
-      setTimeout(() => {
-        setLeads(mockLeads);
-        setIsLoading(false);
-      }, 800);
+      alert("Aucune recherche précédente n'a été effectuée dans cette session.");
     }
   };
 
