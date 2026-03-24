@@ -51,6 +51,14 @@ CREATE POLICY "Users can view their own profile"
   USING (auth.uid() = id);
 
 -- Allow authenticated users to update their own profile
+-- Allow authenticated users to update their own profile (with column restrictions)
+-- To prevent users from updating their own tokens or is_admin flags,
+-- we must restrict the policy to specific columns or handle updates via secure RPC.
+-- In Supabase/PostgreSQL, column-level privileges (REVOKE UPDATE ON public.users(tokens, is_admin))
+-- are best, but you can also use a trigger or a more complex policy.
+-- A simple approach without triggers is limiting the columns via REVOKE:
+REVOKE UPDATE (tokens, is_admin) ON public.users FROM authenticated;
+
 CREATE POLICY "Users can update their own profile"
   ON public.users
   FOR UPDATE

@@ -45,4 +45,4 @@ Avec 200 $, vous pouvez effectuer environ :
 - Ou ~11 000 requêtes de détails d'établissements par mois.
 *Une utilisation normale de l'application (quelques dizaines de recherches par jour) sera donc totalement couverte par ce crédit de 200 $ et vous ne paierez rien.*
 
-> ⚠️ **Important :** N'oubliez pas d'ajouter votre clé API `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSy...` dans le fichier `.env.local` ! Vous pouvez générer cette clé via la [Google Cloud Console](https://console.cloud.google.com/).
+> ⚠️ **Important :** N'oubliez pas d'ajouter votre clé API `GOOGLE_MAPS_API_KEY=AIzaSy...` dans le fichier `.env.local` ! Vous pouvez générer cette clé via la [Google Cloud Console](https://console.cloud.google.com/).
