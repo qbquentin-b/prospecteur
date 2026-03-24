@@ -29,32 +29,31 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Token management logic
-  if (userId && authHeader) {
-    // Use the JWT to bypass anon restrictions for RLS policies
-    // For sensitive updates like tokens, a service_role key or SECURITY DEFINER RPC is preferred.
-    // Assuming the RLS permits the user to update their own row (or a subset of columns) via this token.
+  // 2. Google Places API Search (Text Search - New API)
+  // We use the new Places API endpoint as requested to ensure we get the websiteUri field.
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let places: any[] = [];
 
-    // Usually in NextJS server components, you create a new client.
-    // Here we're using the standard client but we'll fetch with the explicit user context
-    // Though for true security against token forging, an RPC function `deduct_token` is better.
-    // For now we use the global client with a simple query but note the security implications.
-
-    // Create a new client authenticated with the user's token for this request
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { createClient } = require('@supabase/supabase-js');
-    const authSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: authHeader,
-          },
+  // We will need auth client for token checking and deduction
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createClient } = require('@supabase/supabase-js');
+  const authSupabase = userId && authHeader ? createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: {
+          Authorization: authHeader,
         },
-      }
-    );
+      },
+    }
+  ) : null;
 
+  let availableTokens = Infinity; // Default if bypass
+
+  // Check user tokens BEFORE starting the scan
+  if (authSupabase && userId) {
     const { data: userProfile, error: profileError } = await authSupabase
       .from('users')
       .select('tokens')
@@ -64,42 +63,14 @@ export async function GET(req: NextRequest) {
     if (profileError) {
       console.error("Error fetching profile tokens", profileError);
     } else if (!userProfile) {
-      console.warn(`No user profile found for user ${userId} in public.users table. Skipping token deduction.`);
+      console.warn(`No user profile found for user ${userId} in public.users table.`);
     } else {
-      if (userProfile.tokens <= 0) {
+      availableTokens = userProfile.tokens;
+      if (availableTokens <= 0) {
         return NextResponse.json({ error: 'Plus de tokens disponibles. Veuillez recharger votre compte.' }, { status: 403 });
       }
-
-      // Deduct 1 token and log the scan
-      const { error: updateError } = await authSupabase
-        .from('users')
-        .update({ tokens: userProfile.tokens - 1 })
-        .eq('id', userId);
-
-      if (updateError) console.error("Error updating tokens", updateError);
-
-      const { error: logError } = await authSupabase
-        .from('scan_executions')
-        .insert({
-          user_id: userId,
-          sector,
-          location,
-          radius_km: radius,
-          lat,
-          lng
-        });
-
-      if (logError) console.error("Error logging scan execution", logError);
     }
-  } else {
-    console.warn("Scan exécuté sans authentification (dev_bypass ou pas de token fourni). Aucun token déduit.");
   }
-
-  // 2. Google Places API Search (Text Search - New API)
-  // We use the new Places API endpoint as requested to ensure we get the websiteUri field.
-  const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let places: any[] = [];
 
   if (API_KEY) {
     // If sector is "All", simply search for businesses in the location
@@ -117,50 +88,104 @@ export async function GET(req: NextRequest) {
         }
       } : undefined;
 
-      // Construct body
+      // We will loop to fetch multiple pages if we have enough tokens, up to a max of 60 results (3 pages)
+      const targetMaxResults = Math.min(60, availableTokens === Infinity ? 60 : availableTokens);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const bodyPayload: any = {
-        textQuery: `${query} in ${location}` // Fallback text query for better results sometimes
-      };
+      let fetchedPlaces: any[] = [];
+      let pageToken = undefined;
 
-      if (locationBias) {
-         bodyPayload.locationBias = locationBias;
-         // When using location bias, textQuery alone might be enough or we just use the query
-         bodyPayload.textQuery = query;
-      }
-
-      const res = await fetch(placesUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': API_KEY,
-          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.primaryTypeDisplayName,places.location,places.internationalPhoneNumber'
-        },
-        body: JSON.stringify(bodyPayload)
-      });
-      const data = await res.json();
-
-      if (data.error) {
-         console.error("Places API error response:", data.error);
-      } else {
-        // Map the new API structure to our internal structure
+      do {
+        // Construct body
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        places = (data.places || []).slice(0, 20).map((p: any) => ({
-          place_id: p.id,
-          name: p.displayName?.text || 'Unknown',
-          formatted_address: p.formattedAddress || '',
-          rating: p.rating || 0,
-          user_ratings_total: p.userRatingCount || 0,
-          website: p.websiteUri,
-          category: p.primaryTypeDisplayName?.text || sector,
-          lat: p.location?.latitude,
-          lng: p.location?.longitude,
-          phone: p.internationalPhoneNumber
-        }));
-      }
+        const bodyPayload: any = {
+          textQuery: `${query} in ${location}` // Fallback text query for better results sometimes
+        };
+
+        if (locationBias) {
+           bodyPayload.locationBias = locationBias;
+           // When using location bias, textQuery alone might be enough or we just use the query
+           bodyPayload.textQuery = query;
+        }
+
+        if (pageToken) {
+          bodyPayload.pageToken = pageToken;
+          // Google Places API requires a short delay before a nextPageToken becomes valid
+          await new Promise(r => setTimeout(r, 2000));
+        }
+
+        const res = await fetch(placesUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': API_KEY,
+            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.primaryTypeDisplayName,places.location,places.internationalPhoneNumber,places.googleMapsUri,nextPageToken'
+          },
+          body: JSON.stringify(bodyPayload)
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+           console.error("Places API error response:", data.error);
+           break;
+        } else {
+          const currentPlaces = data.places || [];
+          fetchedPlaces = [...fetchedPlaces, ...currentPlaces];
+          pageToken = data.nextPageToken;
+        }
+
+        // Break early if we've reached our target or there's no more pages
+      } while (pageToken && fetchedPlaces.length < targetMaxResults);
+
+      // Enforce absolute limits based on tokens
+      const limit = Math.min(fetchedPlaces.length, targetMaxResults);
+
+      // Map the new API structure to our internal structure
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      places = fetchedPlaces.slice(0, limit).map((p: any) => ({
+        place_id: p.id,
+        name: p.displayName?.text || 'Unknown',
+        formatted_address: p.formattedAddress || '',
+        rating: p.rating || 0,
+        user_ratings_total: p.userRatingCount || 0,
+        website: p.websiteUri,
+        category: p.primaryTypeDisplayName?.text || sector,
+        lat: p.location?.latitude,
+        lng: p.location?.longitude,
+        phone: p.internationalPhoneNumber,
+        googleMapsUri: p.googleMapsUri
+      }));
+
     } catch (e) {
       console.error("Places API error:", e);
     }
+  }
+
+  // Deduct tokens based on the number of results found
+  if (authSupabase && userId && places.length > 0 && availableTokens !== Infinity) {
+    const tokensCost = places.length;
+
+    // Deduct tokens using secure RPC since UPDATE on tokens column is revoked
+    const { error: updateError } = await authSupabase
+      .rpc('deduct_tokens', { p_user_id: userId, p_amount: tokensCost });
+
+    if (updateError) console.error("Error updating tokens via RPC", updateError);
+
+    // Log execution
+    const { error: logError } = await authSupabase
+      .from('scan_executions')
+      .insert({
+        user_id: userId,
+        sector,
+        location,
+        radius_km: radius,
+        lat,
+        lng
+      });
+
+    if (logError) console.error("Error logging scan execution", logError);
+  } else if (!userId) {
+    console.warn("Scan exécuté sans authentification (dev_bypass ou pas de token fourni). Aucun token déduit.");
   }
 
   // 3. Parallel Enrichment
@@ -185,6 +210,7 @@ export async function GET(req: NextRequest) {
         rating: place.rating || 0,
         reviewCount: place.user_ratings_total || 0,
         category: place.category as string,
+        googleMapsUri: place.googleMapsUri,
       },
     };
 

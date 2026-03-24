@@ -11,6 +11,7 @@ export interface GoogleBusiness {
   rating: number;
   reviewCount: number;
   category: string;
+  googleMapsUri?: string;
 }
 
 export interface TechAudit {

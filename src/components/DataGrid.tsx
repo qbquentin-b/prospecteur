@@ -201,10 +201,23 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                 <td className="px-6 py-4 align-top">
                   <div className="flex flex-col gap-1">
                     <div className="font-bold text-slate-900 text-base dark:text-white">{lead.name}</div>
-                    <div className="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">location_on</span>
-                      <span className="truncate max-w-[200px]">{lead.address}</span>
-                    </div>
+                    {lead.googleBusiness.googleMapsUri ? (
+                      <a
+                        href={lead.googleBusiness.googleMapsUri}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary text-xs flex items-center gap-1 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">location_on</span>
+                        <span className="truncate max-w-[200px]">{lead.address}</span>
+                      </a>
+                    ) : (
+                      <div className="text-slate-500 dark:text-slate-400 text-xs flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">location_on</span>
+                        <span className="truncate max-w-[200px]">{lead.address}</span>
+                      </div>
+                    )}
 
                     <div className="flex gap-2 mt-2">
                       {lead.contact.email && lead.contact.email.length > 0 ? (
@@ -251,13 +264,19 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                     <span className="text-xs text-slate-500">({lead.googleBusiness.reviewCount} avis)</span>
 
                     {!lead.googleBusiness.isClaimed && (
-                      <span className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 bg-red-50 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 mt-1">
+                      <span
+                        className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 bg-red-50 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400 mt-1 cursor-help"
+                        title="Cette entreprise n'a pas revendiqué sa fiche Google. C'est une excellente opportunité pour lui proposer d'en prendre le contrôle."
+                      >
                         <span className="material-symbols-outlined text-[12px]">warning</span>
                         Non revendiqué
                       </span>
                     )}
                     {lead.googleBusiness.isClaimed && (
-                      <span className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-600 bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400 mt-1">
+                      <span
+                        className="inline-flex items-center gap-1 w-max rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-600 bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400 mt-1 cursor-help"
+                        title="Cette fiche Google est gérée par le propriétaire de l'établissement."
+                      >
                         <span className="material-symbols-outlined text-[12px]">verified</span>
                         Revendiqué
                       </span>
@@ -331,7 +350,7 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                           d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                           strokeDasharray={`${Math.round(lead.opportunityScore * 10)}, 100`}
                         ></path>
-                        <text className="percentage" x="18" y="20.35">{Math.round(lead.opportunityScore * 10)}</text>
+                        <text className="percentage" x="18" y="21.5">{Math.round(lead.opportunityScore * 10)}</text>
                       </svg>
                     </div>
                     <div className="flex flex-col">
@@ -395,13 +414,22 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </button>
 
-            {/* Pages - Simplistic render for design match */}
-            <button className={`flex h-8 w-8 items-center justify-center rounded border shadow-sm ${currentPage === 1 ? 'border-primary bg-primary text-white' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>1</button>
-            {totalPages >= 2 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === 2 ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>2</button>}
-            {totalPages >= 3 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === 3 ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>3</button>}
-
-            {totalPages > 4 && <span className="text-slate-400">...</span>}
-            {totalPages > 3 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === totalPages ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>{totalPages}</button>}
+            {/* Dynamic Pages */}
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter(page => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+              .map((page, index, array) => (
+              <React.Fragment key={page}>
+                {index > 0 && page - array[index - 1] > 1 && (
+                  <span className="text-slate-400">...</span>
+                )}
+                <button
+                  onClick={() => setCurrentPage(page)}
+                  className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === page ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}
+                >
+                  {page}
+                </button>
+              </React.Fragment>
+            ))}
 
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
