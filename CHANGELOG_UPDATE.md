@@ -28,3 +28,21 @@ Pour que toutes les nouvelles fonctionnalités marchent (Favoris, Tokens, Admini
   - Les filtres visuels sont désormais fonctionnels.
   - Ajout du bouton "Dernier Scan" pour éviter de griller des tokens inutilement si on veut juste recharger la dernière recherche.
 - **Documentation :** Ajout d'une page `/docs` expliquant comment l'Opp Score est calculé et comment utiliser l'interface.
+## 🗺️ Google Maps Platform & Quotas Gratuits
+
+Pour la fonctionnalité de recherche via la carte, ce projet requiert une clé API Google Maps.
+
+**Quotas et Crédit Mensuel (Free Tier) :**
+Google Maps Platform offre **200 $ de crédit gratuit par mois** à tous les utilisateurs.
+
+Voici ce que cela représente concrètement pour LeadScanner :
+- **Text Search (Places API) :** Coûte environ 0.032 $ par requête.
+- **Places Details (Places API) :** Coûte environ 0.017 $ par lieu détaillé (selon les champs demandés).
+
+**Combien de scans gratuits par mois ?**
+Avec 200 $, vous pouvez effectuer environ :
+- ~6 000 requêtes de recherche Text Search par mois.
+- Ou ~11 000 requêtes de détails d'établissements par mois.
+*Une utilisation normale de l'application (quelques dizaines de recherches par jour) sera donc totalement couverte par ce crédit de 200 $ et vous ne paierez rien.*
+
+> ⚠️ **Important :** N'oubliez pas d'ajouter votre clé API `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSy...` dans le fichier `.env.local` ! Vous pouvez générer cette clé via la [Google Cloud Console](https://console.cloud.google.com/).

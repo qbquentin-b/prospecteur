@@ -316,12 +316,23 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
 
                 <td className="px-6 py-4 align-middle">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full font-black text-lg shadow-sm border-2
-                      ${lead.opportunityScore >= 8 ? 'bg-red-50 border-red-100 text-red-600 dark:bg-red-900/10 dark:border-red-900/30 dark:text-red-500' :
-                        lead.opportunityScore >= 5 ? 'bg-orange-50 border-orange-100 text-orange-600 dark:bg-orange-900/10 dark:border-orange-900/30 dark:text-orange-500' :
-                        'bg-green-50 border-green-100 text-green-600 dark:bg-green-900/10 dark:border-green-900/30 dark:text-green-500'}`}
-                    >
-                      {lead.opportunityScore.toFixed(1)}
+                    <div className="relative w-12 h-12 shrink-0">
+                      <svg
+                        className={`circular-chart ${
+                          lead.opportunityScore >= 8 ? 'text-red-500' :
+                          lead.opportunityScore >= 5 ? 'text-orange-500' :
+                          'text-green-500'
+                        }`}
+                        viewBox="0 0 36 36"
+                      >
+                        <path className="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                        <path
+                          className="circle stroke-current"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                          strokeDasharray={`${Math.round(lead.opportunityScore * 10)}, 100`}
+                        ></path>
+                        <text className="percentage" x="18" y="20.35">{Math.round(lead.opportunityScore * 10)}</text>
+                      </svg>
                     </div>
                     <div className="flex flex-col">
                       <span className={`text-xs font-bold uppercase
@@ -332,7 +343,7 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                         {lead.opportunityScore >= 8 ? 'Critique' : lead.opportunityScore >= 5 ? 'Moyen' : 'Faible'}
                       </span>
                       <span className="text-[10px] text-slate-500 leading-tight">
-                        {lead.opportunityScore >= 8 ? 'Fort potentiel de services' : lead.opportunityScore >= 5 ? 'Optimisations possibles' : 'Présence solide'}
+                        {lead.opportunityScore >= 8 ? 'Fort potentiel' : lead.opportunityScore >= 5 ? 'A optimiser' : 'Présence solide'}
                       </span>
                     </div>
                   </div>
@@ -353,6 +364,15 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                   >
                     <span className={`material-symbols-outlined text-[20px] ${favoriteIds.includes(lead.id) ? 'fill-current' : ''}`}>favorite</span>
                   </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border-light text-slate-600 hover:bg-slate-50 hover:text-primary dark:border-border-dark dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
+                    title="Plus d'actions"
+                  >
+                    <span className="material-symbols-outlined">more_horiz</span>
+                  </button>
                 </td>
               </tr>
             ))}
@@ -370,17 +390,23 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="flex h-8 w-8 items-center justify-center rounded border border-border-light bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex h-8 w-8 items-center justify-center rounded border border-border-light bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-border-dark dark:bg-surface-dark dark:hover:bg-slate-800"
             >
               <span className="material-symbols-outlined text-[18px]">chevron_left</span>
             </button>
-            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-              {currentPage} / {totalPages}
-            </span>
+
+            {/* Pages - Simplistic render for design match */}
+            <button className={`flex h-8 w-8 items-center justify-center rounded border shadow-sm ${currentPage === 1 ? 'border-primary bg-primary text-white' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>1</button>
+            {totalPages >= 2 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === 2 ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>2</button>}
+            {totalPages >= 3 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === 3 ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>3</button>}
+
+            {totalPages > 4 && <span className="text-slate-400">...</span>}
+            {totalPages > 3 && <button className={`flex h-8 w-8 items-center justify-center rounded border ${currentPage === totalPages ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-light bg-white text-slate-600 hover:bg-slate-50 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800'}`}>{totalPages}</button>}
+
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="flex h-8 w-8 items-center justify-center rounded border border-border-light bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex h-8 w-8 items-center justify-center rounded border border-border-light bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800 dark:border-border-dark dark:bg-surface-dark dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <span className="material-symbols-outlined text-[18px]">chevron_right</span>
             </button>

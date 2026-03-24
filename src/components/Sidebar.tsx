@@ -51,7 +51,7 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                 )}
                 <button className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                   <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                  Copier les détails
+                  Copy Details
                 </button>
               </div>
             </div>
@@ -230,8 +230,8 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
           <button className="group flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary to-primary-dark p-4 text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
             <span className="material-symbols-outlined text-[24px] animate-pulse">auto_awesome</span>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-bold">Brouillon de message IA</span>
-              <span className="text-[10px] opacity-90 font-medium">Personnalisé pour {lead.name}</span>
+              <span className="text-sm font-bold">Draft AI Outreach</span>
+              <span className="text-[10px] opacity-90 font-medium">Personalized for {lead.name}</span>
             </div>
             <span className="material-symbols-outlined ml-auto opacity-70 group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </button>
