@@ -90,7 +90,11 @@ export default function SearchSection({ onScan, isLoading, isMapVisible, onToggl
             <span className="hidden xl:inline">Dernier Scan</span>
           </button>
           <button
-            onClick={handleScan}
+            onClick={() => {
+              if (window.confirm(`Vous allez consommer des jetons (1 jeton = 1 résultat). Voulez-vous continuer le scan pour "${sector || 'Tout'}" à "${location}" ?`)) {
+                handleScan();
+              }
+            }}
             disabled={isLoading}
             className={`flex flex-1 md:flex-none h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:shadow-lg active:scale-95 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >

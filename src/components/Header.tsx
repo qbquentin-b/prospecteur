@@ -38,8 +38,10 @@ export default function Header() {
     fetchUser();
 
     // Listen for token consumption events to update UI instantly
-    const handleTokenConsumed = () => {
-      setUserTokens(prev => prev !== null && prev > 0 ? prev - 1 : prev);
+    const handleTokenConsumed = (e: Event) => {
+      const customEvent = e as CustomEvent<{ cost: number }>;
+      const cost = customEvent.detail?.cost || 1;
+      setUserTokens(prev => prev !== null && prev >= cost ? prev - cost : prev);
     };
 
     window.addEventListener('token-consumed', handleTokenConsumed);

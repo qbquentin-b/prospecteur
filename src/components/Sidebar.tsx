@@ -37,10 +37,22 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
             </div>
             <div className="flex flex-col gap-1 w-full">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white" id="slide-over-title">{lead.name}</h2>
-              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <span className="material-symbols-outlined text-[16px]">location_on</span>
-                {lead.address}
-              </div>
+              {lead.googleBusiness.googleMapsUri ? (
+                <a
+                  className="flex items-center gap-2 text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors"
+                  href={lead.googleBusiness.googleMapsUri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">location_on</span>
+                  {lead.address}
+                </a>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                  <span className="material-symbols-outlined text-[16px]">location_on</span>
+                  {lead.address}
+                </div>
+              )}
               <div className="mt-2 flex items-center gap-3">
                 {lead.techAudit.website && (
                   <a className="group flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary-dark transition-colors" href={lead.techAudit.website} target="_blank" rel="noopener noreferrer">
@@ -89,7 +101,12 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                 <div className={`mt-1 text-xl font-bold ${lead.googleBusiness.isClaimed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {lead.googleBusiness.isClaimed ? '95' : '42'}
                 </div>
-                <div className="mt-1 text-[10px] text-slate-400">{lead.googleBusiness.isClaimed ? 'Revendiqué' : 'Non revendiqué'}</div>
+                <div
+                  className="mt-1 text-[10px] text-slate-400 cursor-help"
+                  title={lead.googleBusiness.isClaimed ? "Cette fiche Google est gérée par le propriétaire." : "Cette entreprise n'a pas revendiqué sa fiche Google. Opportunité de service."}
+                >
+                  {lead.googleBusiness.isClaimed ? 'Revendiqué' : 'Non revendiqué'}
+                </div>
               </div>
             </div>
           </div>

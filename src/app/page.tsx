@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [session, setSession] = useState<any>(null);
   const router = useRouter();
@@ -23,7 +23,6 @@ export default function Home() {
   const [mapRadius, setMapRadius] = useState<number>(5);
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [lastScanParams, setLastScanParams] = useState<{sector: string, location: string, radiusKm: number} | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   // Load favorites on session load
@@ -98,7 +97,6 @@ export default function Home() {
     setLeads([]);
     setSelectedLead(null);
     setIsSidebarOpen(false);
-    setLastScanParams({ sector, location, radiusKm });
 
     try {
       setMapRadius(radiusKm);
@@ -127,8 +125,13 @@ export default function Home() {
         setLeads(data);
 
         // Dispatch an event to update tokens in Header
-        window.dispatchEvent(new Event('token-consumed'));
+        window.dispatchEvent(new CustomEvent('token-consumed', { detail: { cost: data.length } }));
 
+        // Save scan to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('leadscanner_last_scan', JSON.stringify(data));
+          localStorage.setItem('leadscanner_last_params', JSON.stringify({ sector, location, radiusKm }));
+        }
       } else if (response.status === 403) {
         alert("Vous n'avez plus de tokens de recherche disponibles.");
       } else {
@@ -154,8 +157,21 @@ export default function Home() {
         router.push("/login");
       } else {
         setSession(session || { user: { id: 'dev_bypass_mock_id' } });
-        // Load initial data only if authenticated or bypassed
-        fetchLeads("Restaurants", "Paris, FR", 5);
+
+        // Attempt to load last scan from local storage to avoid consuming tokens on login
+        if (typeof window !== 'undefined') {
+          const cachedLeads = localStorage.getItem('leadscanner_last_scan');
+          if (cachedLeads) {
+            try {
+              const parsedLeads = JSON.parse(cachedLeads);
+              if (parsedLeads && Array.isArray(parsedLeads) && parsedLeads.length > 0) {
+                setLeads(parsedLeads);
+              }
+            } catch (e) {
+              console.error("Failed to parse cached scan data", e);
+            }
+          }
+        }
       }
     };
 
@@ -199,11 +215,23 @@ export default function Home() {
   };
 
   const loadLastScan = () => {
-    if (lastScanParams) {
-      fetchLeads(lastScanParams.sector, lastScanParams.location, lastScanParams.radiusKm);
-    } else {
-      alert("Aucune recherche précédente n'a été effectuée dans cette session.");
+    if (typeof window !== 'undefined') {
+      const cachedLeads = localStorage.getItem('leadscanner_last_scan');
+      if (cachedLeads) {
+        try {
+          const parsedLeads = JSON.parse(cachedLeads);
+          if (parsedLeads && Array.isArray(parsedLeads) && parsedLeads.length > 0) {
+            setLeads(parsedLeads);
+            alert("Dernier scan chargé sans consommer de tokens.");
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse cached scan data", e);
+        }
+      }
     }
+
+    alert("Aucune recherche précédente n'a été trouvée.");
   };
 
   // Dynamically import map with ssr: false

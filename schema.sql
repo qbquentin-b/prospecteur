@@ -117,26 +117,58 @@ CREATE POLICY "Users can delete their own favorites"
   TO authenticated
   USING (auth.uid() = user_id);
 
+-- Security Definer function to allow authenticated users to safely deduct tokens
+-- Since UPDATE on `tokens` is revoked for security reasons, we use a controlled RPC.
+CREATE OR REPLACE FUNCTION public.deduct_tokens(p_user_id UUID, p_amount INTEGER)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Only allow users to deduct their own tokens, or if they are admin
+  IF auth.uid() = p_user_id OR public.is_admin() THEN
+    UPDATE public.users
+    SET tokens = GREATEST(tokens - p_amount, 0)
+    WHERE id = p_user_id;
+  ELSE
+    RAISE EXCEPTION 'Not authorized to deduct tokens for this user';
+  END IF;
+END;
+$$;
+
+-- Security Definer function to check if the current user is an admin
+-- This prevents the infinite recursion '42P17' error that occurs when a policy
+-- on the users table queries the users table itself.
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  is_admin_status BOOLEAN;
+BEGIN
+  SELECT is_admin INTO is_admin_status
+  FROM public.users
+  WHERE id = auth.uid();
+
+  RETURN COALESCE(is_admin_status, FALSE);
+END;
+$$;
+
 -- Admin RLS (Les administrateurs peuvent voir tous les profils et logs)
 CREATE POLICY "Admins can view all users"
   ON public.users
   FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.users WHERE id = auth.uid() AND is_admin = true
-    )
-  );
+  USING (public.is_admin());
 
 CREATE POLICY "Admins can view all logs"
   ON public.scan_executions
   FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.users WHERE id = auth.uid() AND is_admin = true
-    )
-  );
+  USING (public.is_admin());
 
 -- Optional: Create a trigger to automatically create a public.users profile
 -- whenever a new user signs up via Supabase Auth.
