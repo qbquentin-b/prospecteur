@@ -47,4 +47,4 @@ Suite à la validation de la **Solution A (Scan par Quadrillage Dynamique)**, vo
 
 ### 5. Analyse Concurrentielle Locale
 - **Concept :** Au lieu de scanner seulement un type d'établissement, permettre de comparer un lead spécifique à ses 5 concurrents les plus proches géographiquement. "Votre concurrent à 200m a une note de 4.8/5 et un site rapide, contrairement à vous."
-- **Valeur :** C'est un des arguments de vente les plus puissants (la peur de perdre face au voisin).
+- **Valeur :** C'est un des arguments de vente les plus puissants (la peur de perdre face au voisin)
