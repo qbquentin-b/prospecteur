@@ -46,3 +46,11 @@ Avec 200 $, vous pouvez effectuer environ :
 *Une utilisation normale de l'application (quelques dizaines de recherches par jour) sera donc totalement couverte par ce crédit de 200 $ et vous ne paierez rien.*
 
 > ⚠️ **Important :** N'oubliez pas d'ajouter votre clé API `GOOGLE_MAPS_API_KEY=AIzaSy...` dans le fichier `.env.local` ! Vous pouvez générer cette clé via la [Google Cloud Console](https://console.cloud.google.com/).
+
+## 📊 Ajustement de l'Algorithme de Scoring (Performance & Sécurité)
+
+Suite à vos retours sur la pertinence des scores d'opportunité :
+- **L'impact de la mention "Non Revendiqué" (Sécurité) a été divisé par deux** (de +4 points à +2 points). Bien qu'il s'agisse d'une vulnérabilité, ce n'est plus le facteur numéro 1 du score.
+- **Pénalité sur les constructeurs de site web :** Le scanner identifie désormais le CMS (Wix, Squarespace, WordPress, ou des sites custom/obscurs comme DISH Digital).
+  - Les constructeurs grand-public ou les sites sans technologie professionnelle détectée reçoivent un malus de **+2.5 points**, ce qui fait monter leur score d'opportunité (ils sont de très bons candidats pour une refonte web pro).
+- **Sites non-analysables :** Si la performance d'un site ne peut être calculée (protection anti-bot, lenteur extrême, erreur serveur), le prospect gagne **+1.5 points** d'opportunité, car un site injoignable par Google PageSpeed est souvent un site problématique pour le client final.
