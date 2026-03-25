@@ -22,3 +22,13 @@ Plutôt que d'augmenter arbitrairement le rayon depuis le centre de la ville, no
 
 ## Décision à prendre
 Voulez-vous que l'on implémente la Solution A lors du prochain Sprint ? Cela transformerait la carte en un véritable outil de ratissage local.
+
+---
+
+## Nouvelles Idées de Fonctionnalités Validées (Prochaines Itérations)
+
+Suite à la validation de la **Solution A (Scan par Quadrillage Dynamique)**, l'idée de fonctionnalité supplémentaire retenue pour augmenter la valeur de LeadScanner est :
+
+### Analyse Concurrentielle Locale
+- **Concept :** Au lieu de scanner seulement un type d'établissement de façon isolée, permettre de comparer un lead spécifique à ses 5 concurrents les plus proches géographiquement. Ex: "Votre concurrent direct à 200m a une note de 4.8/5 et un site rapide, contrairement à vous."
+- **Valeur :** Fournit à l'utilisateur l'un des arguments de vente les plus puissants sur le marché (la peur de perdre face au voisin / FOMO locale) pour déclencher l'acte d'achat.
