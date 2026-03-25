@@ -334,7 +334,7 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
                 </td>
 
                 <td className="px-6 py-4 align-middle">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 shrink-0">
                       <svg
                         className={`circular-chart ${

@@ -93,7 +93,9 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
                   {lead.techAudit.pageSpeedScore ?? 'N/A'}
                 </div>
                 <div className="mt-1 text-[10px] text-slate-400">
-                  {lead.techAudit.pageSpeedScore ? (lead.techAudit.pageSpeedScore < 50 ? 'Poor' : lead.techAudit.pageSpeedScore < 80 ? 'Average' : 'Good') : 'Pas de Site'}
+                  {lead.techAudit.pageSpeedScore !== undefined
+                    ? (lead.techAudit.pageSpeedScore < 50 ? 'Lent' : lead.techAudit.pageSpeedScore < 80 ? 'Moyen' : 'Rapide')
+                    : (lead.techAudit.hasWebsite ? 'Non testé' : 'Pas de Site')}
                 </div>
               </div>
               <div className="rounded-lg border border-border-light bg-slate-50 p-3 text-center dark:border-border-dark dark:bg-slate-800/50">

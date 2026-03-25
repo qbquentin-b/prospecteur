@@ -68,8 +68,10 @@ export async function fetchPageSpeed(url: string): Promise<number | undefined> {
 export function calculateScore(lead: Omit<Lead, 'opportunityScore'>): number {
   let score = 0;
 
+  // L'impact de la fiche non revendiquée est réduit de 4 à 2 points.
+  // Une fiche non revendiquée reste une opportunité, mais moins critique qu'un site inexistant ou très lent.
   if (!lead.googleBusiness.isClaimed) {
-    score += 4;
+    score += 2;
   }
 
   if (lead.googleBusiness.rating < 3.5) {
@@ -78,13 +80,34 @@ export function calculateScore(lead: Omit<Lead, 'opportunityScore'>): number {
 
   if (!lead.techAudit.hasWebsite) {
     score += 5;
-  } else if (lead.techAudit.pageSpeedScore !== undefined) {
-    if (lead.techAudit.pageSpeedScore < 50) {
-      score += 3;
-    } else if (lead.techAudit.pageSpeedScore <= 89) {
-      score += 1;
+  } else {
+    // Le site existe, analysons sa performance.
+    if (lead.techAudit.pageSpeedScore !== undefined) {
+      if (lead.techAudit.pageSpeedScore < 50) {
+        score += 3;
+      } else if (lead.techAudit.pageSpeedScore <= 89) {
+        score += 1;
+      }
+    } else {
+      // Si on n'a pas pu récupérer le score (erreur PageSpeed ou timeout),
+      // on pénalise légèrement l'incertitude (peut refléter un site bloquant ou très lent).
+      score += 1.5;
+    }
+
+    // Ajout de pénalités liées aux technologies détectées.
+    // Un site fait maison avec un constructeur low-cost ou inconnu est souvent une bonne cible pour une refonte pro.
+    if (lead.techAudit.cms) {
+      const cms = lead.techAudit.cms.toLowerCase();
+      if (cms === 'wix' || cms === 'squarespace' || cms === '1&1' || cms === 'weebly') {
+        score += 2; // Constructeur grand public : forte opportunité d'upsell vers une solution pro (WordPress/Next.js)
+      } else if (cms === 'wordpress') {
+        score += 0.5; // WordPress : opportunité de maintenance ou refonte si le score de perf est mauvais
+      }
+    } else {
+      // Pas de CMS détecté (site custom obsolète, HTML pur ou outil propriétaire type "DISH Digital")
+      score += 2.5;
     }
   }
 
-  return score; // Max possible is normally 10
+  return Math.min(score, 10); // Plafonne le score à 10 maximum
 }
