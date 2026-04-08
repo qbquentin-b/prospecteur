@@ -1,13 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Lead } from '../types/lead';
 
 interface SidebarProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  allLeads?: Lead[];
 }
 
-export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
+// Haversine formula to calculate distance between two coordinates in km
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+export default function Sidebar({ lead, isOpen, onClose, allLeads = [] }: SidebarProps) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -15,6 +29,22 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
+
+  const localCompetitors = useMemo(() => {
+    if (!lead || !lead.lat || !lead.lng || !allLeads || allLeads.length <= 1) return [];
+
+    // Sort all other leads by distance
+    const withDistance = allLeads
+      .filter(l => l.id !== lead.id && l.lat && l.lng)
+      .map(l => ({
+        ...l,
+        distance: calculateDistance(lead.lat!, lead.lng!, l.lat!, l.lng!)
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 3); // Get top 3 closest competitors
+
+    return withDistance;
+  }, [lead, allLeads]);
 
   if (!isOpen || !lead) return null;
 
@@ -221,6 +251,53 @@ export default function Sidebar({ lead, isOpen, onClose }: SidebarProps) {
               </div>
             </div>
           </div>
+
+          {localCompetitors.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px]">radar</span>
+                Analyse Concurrentielle Locale (Top 3)
+              </h3>
+              <div className="flex flex-col gap-3">
+                {localCompetitors.map((competitor, idx) => (
+                  <div key={idx} className="flex flex-col gap-2 rounded-lg border border-border-light bg-slate-50 p-3 dark:border-border-dark dark:bg-slate-800/50">
+                    <div className="flex items-center justify-between">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white truncate max-w-[200px]" title={competitor.name}>
+                        {competitor.name}
+                      </div>
+                      <div className="text-xs font-semibold text-slate-500">
+                        à {(competitor.distance * 1000).toFixed(0)}m
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-orange-400">star</span>
+                        <span className="font-bold">{competitor.googleBusiness.rating.toFixed(1)}</span>
+                        <span className="text-slate-400">({competitor.googleBusiness.reviewCount})</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-blue-500">speed</span>
+                        <span className={`font-bold ${competitor.techAudit.pageSpeedScore ? (competitor.techAudit.pageSpeedScore >= 80 ? 'text-green-600' : competitor.techAudit.pageSpeedScore < 50 ? 'text-red-600' : 'text-orange-500') : 'text-slate-400'}`}>
+                          {competitor.techAudit.pageSpeedScore ?? 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    {/* FOMO Actionable Insights */}
+                    {competitor.googleBusiness.rating > lead.googleBusiness.rating && (
+                      <div className="mt-1 text-[10px] text-red-600 dark:text-red-400 font-medium">
+                        🚨 Ce concurrent direct est mieux noté sur Google ({competitor.googleBusiness.rating.toFixed(1)} contre {lead.googleBusiness.rating.toFixed(1)}).
+                      </div>
+                    )}
+                    {(competitor.techAudit.pageSpeedScore ?? 0) > (lead.techAudit.pageSpeedScore ?? 0) + 15 && lead.techAudit.hasWebsite && (
+                      <div className="mt-1 text-[10px] text-orange-600 dark:text-orange-400 font-medium">
+                        ⚠️ Leur site web est beaucoup plus rapide que le leur.
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">

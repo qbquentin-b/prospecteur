@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic';
 import { Lead } from "../types/lead";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { LatLngBounds } from "leaflet";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,13 @@ export default function Home() {
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [scannedGrids, setScannedGrids] = useState<any[]>([]);
+
+  // Hoisted state for search parameters so the grid can use them
+  const [currentSector, setCurrentSector] = useState("Restaurants");
+  const [currentLocation, setCurrentLocation] = useState("Paris, FR");
+  const [currentRadius, setCurrentRadius] = useState(5);
 
   // Load favorites on session load
   useEffect(() => {
@@ -92,7 +100,7 @@ export default function Home() {
     return null;
   };
 
-  const fetchLeads = async (sector: string, location: string, radiusKm: number = 5) => {
+  const fetchLeads = async (sector: string, location: string, radiusKm: number = 5, overrideBounds?: LatLngBounds) => {
     setIsLoading(true);
     setLeads([]);
     setSelectedLead(null);
@@ -100,25 +108,36 @@ export default function Home() {
 
     try {
       setMapRadius(radiusKm);
-      const coords = await fetchCoordinates(location);
-      let lat = mapCenter[0];
-      let lng = mapCenter[1];
-
-      if (coords) {
-        setMapCenter(coords);
-        lat = coords[0];
-        lng = coords[1];
-      }
-
       const headers: Record<string, string> = {};
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
 
-      const response = await fetch(`/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}&radius=${radiusKm}&lat=${lat}&lng=${lng}`, {
-        headers
-      });
+      let fetchUrl = '';
+
+      if (overrideBounds) {
+        // Mode Quadrillage: On utilise la bounding box
+        const sw = overrideBounds.getSouthWest();
+        const ne = overrideBounds.getNorthEast();
+        fetchUrl = `/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}&low_lat=${sw.lat}&low_lng=${sw.lng}&high_lat=${ne.lat}&high_lng=${ne.lng}`;
+
+        setScannedGrids(prev => [...prev, { bounds: overrideBounds, timestamp: Date.now() }]);
+      } else {
+        // Default mode
+        const coords = await fetchCoordinates(location);
+        let lat = mapCenter[0];
+        let lng = mapCenter[1];
+
+        if (coords) {
+          setMapCenter(coords);
+          lat = coords[0];
+          lng = coords[1];
+        }
+        fetchUrl = `/api/scan?sector=${encodeURIComponent(sector)}&location=${encodeURIComponent(location)}&radius=${radiusKm}&lat=${lat}&lng=${lng}`;
+      }
+
+      const response = await fetch(fetchUrl, { headers });
 
       if (response.ok) {
         const data = await response.json();
@@ -144,6 +163,10 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGridScanRequest = (bounds: LatLngBounds) => {
+    fetchLeads(currentSector || 'Entreprises', 'Grid', mapRadius, bounds);
   };
 
   useEffect(() => {
@@ -235,11 +258,7 @@ export default function Home() {
   };
 
   // Dynamically import map with ssr: false
-  const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[400px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
-
-  const handleCenterChange = (lat: number, lng: number) => {
-    setMapCenter([lat, lng]);
-  };
+  const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[450px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden relative">
@@ -253,6 +272,12 @@ export default function Home() {
           activeFilters={activeFilters}
           onToggleFilter={toggleFilter}
           onLoadLastScan={loadLastScan}
+          sector={currentSector}
+          setSector={setCurrentSector}
+          location={currentLocation}
+          setLocation={setCurrentLocation}
+          radius={currentRadius}
+          setRadius={setCurrentRadius}
         />
       </header>
 
@@ -261,7 +286,12 @@ export default function Home() {
           <StatsRow leads={filteredLeads} />
           {isMapVisible && (
             <div className="mb-6 transition-all duration-300 ease-in-out origin-top">
-              <Map center={mapCenter} radiusKm={mapRadius} leads={filteredLeads} onCenterChange={handleCenterChange} />
+              <Map
+                center={mapCenter}
+                leads={filteredLeads}
+                onGridScanRequest={handleGridScanRequest}
+                scannedGrids={scannedGrids}
+              />
             </div>
           )}
           <DataGrid
@@ -279,6 +309,7 @@ export default function Home() {
         lead={selectedLead}
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
+        allLeads={leads}
       />
     </div>
   );

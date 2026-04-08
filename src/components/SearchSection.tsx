@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { useState } from 'react';
-
 interface SearchSectionProps {
   onScan: (sector: string, location: string, radiusKm: number) => void;
   isLoading: boolean;
@@ -10,12 +8,19 @@ interface SearchSectionProps {
   activeFilters: string[];
   onToggleFilter: (filterId: string) => void;
   onLoadLastScan: () => void;
+  sector: string;
+  setSector: (s: string) => void;
+  location: string;
+  setLocation: (l: string) => void;
+  radius: number;
+  setRadius: (r: number) => void;
 }
 
-export default function SearchSection({ onScan, isLoading, isMapVisible, onToggleMap, activeFilters, onToggleFilter, onLoadLastScan }: SearchSectionProps) {
-  const [sector, setSector] = useState("Restaurants");
-  const [location, setLocation] = useState("Paris, FR");
-  const [radius, setRadius] = useState(5);
+export default function SearchSection({
+  onScan, isLoading, isMapVisible, onToggleMap,
+  activeFilters, onToggleFilter, onLoadLastScan,
+  sector, setSector, location, setLocation, radius, setRadius
+}: SearchSectionProps) {
 
   const handleScan = () => {
     if (location.trim()) {
