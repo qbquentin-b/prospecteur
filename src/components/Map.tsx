@@ -22,6 +22,7 @@ export type ScannedGrid = {
 interface MapProps {
   center: [number, number];
   leads: Lead[];
+  radiusKm: number;
   onGridScanRequest: (bounds: LatLngBounds) => void;
   scannedGrids: ScannedGrid[];
 }
@@ -41,12 +42,12 @@ function MapEvents({ onCenterChange }: { onCenterChange: (center: L.LatLng) => v
   return null;
 }
 
-export default function Map({ center, leads, onGridScanRequest, scannedGrids }: MapProps) {
+export default function Map({ center, leads, radiusKm, onGridScanRequest, scannedGrids }: MapProps) {
   const [dynamicCenter, setDynamicCenter] = useState<L.LatLng | null>(null);
 
-  // When users double click on the center, they trigger a scan for the *current viewport bounds*
-  // Or we can draw a visible 1km x 1km grid at the center. Let's do a central rectangle that they can scan.
-  const GRID_SIZE_KM = 2;
+  // Instead of a hardcoded 2km grid, use the radius (in km) to define the side of the square.
+  // Actually, radiusKm typically implies a circle, but for a bounding box, we'll use it as the width/height of the square.
+  const GRID_SIZE_KM = radiusKm;
 
   // Calculate a square around the current dynamic center (from panning) or the initial center.
   const activeCenter = dynamicCenter ? [dynamicCenter.lat, dynamicCenter.lng] : center;

@@ -289,6 +289,7 @@ export default function Home() {
               <Map
                 center={mapCenter}
                 leads={filteredLeads}
+                radiusKm={currentRadius}
                 onGridScanRequest={handleGridScanRequest}
                 scannedGrids={scannedGrids}
               />
