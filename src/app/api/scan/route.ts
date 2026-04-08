@@ -7,9 +7,18 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sector = searchParams.get('sector');
   const location = searchParams.get('location');
-  const radius = parseInt(searchParams.get('radius') || '5', 10);
   const lat = searchParams.get('lat') ? parseFloat(searchParams.get('lat') as string) : null;
   const lng = searchParams.get('lng') ? parseFloat(searchParams.get('lng') as string) : null;
+
+  // Quadrillage Dynamique : On cherche désormais dans une "bounding box" (un carré)
+  // définie par low_lat, low_lng (sud-ouest) et high_lat, high_lng (nord-est)
+  const low_lat = searchParams.get('low_lat') ? parseFloat(searchParams.get('low_lat') as string) : null;
+  const low_lng = searchParams.get('low_lng') ? parseFloat(searchParams.get('low_lng') as string) : null;
+  const high_lat = searchParams.get('high_lat') ? parseFloat(searchParams.get('high_lat') as string) : null;
+  const high_lng = searchParams.get('high_lng') ? parseFloat(searchParams.get('high_lng') as string) : null;
+
+  // Fallback to radius if no bounding box is provided
+  const radius = parseInt(searchParams.get('radius') || '5', 10);
 
   if (!sector || !location) {
     return NextResponse.json({ error: 'Missing sector or location' }, { status: 400 });
@@ -80,8 +89,17 @@ export async function GET(req: NextRequest) {
     const placesUrl = `https://places.googleapis.com/v1/places:searchText`;
 
     try {
-      // Build location bias if lat/lng are provided. locationBias is better for searchText.
-      const locationBias = (lat != null && lng != null) ? {
+      // Build location restriction if bounding box is provided (rectangle search).
+      // If not, fallback to locationBias with circle for older behaviors.
+      // Note: locationRestriction with rectangle is strictly supported in Places API v1
+      const locationRestriction = (low_lat != null && low_lng != null && high_lat != null && high_lng != null) ? {
+        rectangle: {
+          low: { latitude: low_lat, longitude: low_lng },
+          high: { latitude: high_lat, longitude: high_lng }
+        }
+      } : undefined;
+
+      const locationBias = (!locationRestriction && lat != null && lng != null) ? {
         circle: {
           center: { latitude: lat, longitude: lng },
           radius: radius * 1000.0 // meters
@@ -98,13 +116,18 @@ export async function GET(req: NextRequest) {
         // Construct body
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bodyPayload: any = {
-          textQuery: `${query} in ${location}` // Fallback text query for better results sometimes
+          textQuery: query // Just the sector/query when using a strict locationRestriction
         };
 
-        if (locationBias) {
-           bodyPayload.locationBias = locationBias;
-           // When using location bias, textQuery alone might be enough or we just use the query
+        if (locationRestriction) {
+           bodyPayload.locationRestriction = locationRestriction;
+           // The query should just be the sector without the location string when restricting to a rectangle
            bodyPayload.textQuery = query;
+        } else if (locationBias) {
+           bodyPayload.locationBias = locationBias;
+           bodyPayload.textQuery = `${query} in ${location}`;
+        } else {
+           bodyPayload.textQuery = `${query} in ${location}`;
         }
 
         if (pageToken) {
