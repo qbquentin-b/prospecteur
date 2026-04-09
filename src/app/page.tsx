@@ -257,6 +257,16 @@ export default function Home() {
     alert("Aucune recherche précédente n'a été trouvée.");
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleImportScan = (data: any) => {
+    if (Array.isArray(data) && data.length > 0 && data[0].id) {
+      setLeads(data);
+      alert("Scan importé avec succès !");
+    } else {
+      alert("Le fichier JSON n'est pas au bon format.");
+    }
+  };
+
   // Dynamically import map with ssr: false
   const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[450px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
 
@@ -272,6 +282,7 @@ export default function Home() {
           activeFilters={activeFilters}
           onToggleFilter={toggleFilter}
           onLoadLastScan={loadLastScan}
+          onImportScan={handleImportScan}
           sector={currentSector}
           setSector={setCurrentSector}
           location={currentLocation}

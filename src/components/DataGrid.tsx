@@ -93,6 +93,19 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
     document.body.removeChild(link);
   };
 
+  const handleExportJSON = () => {
+    if (leads.length === 0) return;
+
+    const blob = new Blob([JSON.stringify(leads, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `leadscanner_backup_${new Date().toISOString().slice(0,10)}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return <span className="material-symbols-outlined text-[14px] opacity-30 ml-1">unfold_more</span>;
     return <span className="material-symbols-outlined text-[14px] ml-1">{sortOrder === 'asc' ? 'expand_less' : 'expand_more'}</span>;
@@ -161,13 +174,22 @@ export default function DataGrid({ leads, isLoading, onRowClick, selectedLeadId,
           </select>
           <span className="text-sm text-slate-600 dark:text-slate-400">résultats</span>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-border-light rounded-lg hover:bg-slate-50 hover:text-primary transition-colors shadow-sm dark:bg-surface-dark dark:border-border-dark dark:text-slate-300 dark:hover:text-primary dark:hover:bg-slate-800"
+            title="Exporter en CSV pour Excel"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span className="material-symbols-outlined text-[18px]">csv</span>
             Exporter CSV
+          </button>
+          <button
+            onClick={handleExportJSON}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-border-light rounded-lg hover:bg-slate-50 hover:text-primary transition-colors shadow-sm dark:bg-surface-dark dark:border-border-dark dark:text-slate-300 dark:hover:text-primary dark:hover:bg-slate-800"
+            title="Exporter toutes les données (JSON) pour les réimporter plus tard"
+          >
+            <span className="material-symbols-outlined text-[18px]">data_object</span>
+            Sauvegarder Scan
           </button>
         </div>
       </div>

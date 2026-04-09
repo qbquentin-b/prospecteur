@@ -8,6 +8,8 @@ interface SearchSectionProps {
   activeFilters: string[];
   onToggleFilter: (filterId: string) => void;
   onLoadLastScan: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onImportScan?: (data: any) => void;
   sector: string;
   setSector: (s: string) => void;
   location: string;
@@ -18,9 +20,25 @@ interface SearchSectionProps {
 
 export default function SearchSection({
   onScan, isLoading, isMapVisible, onToggleMap,
-  activeFilters, onToggleFilter, onLoadLastScan,
+  activeFilters, onToggleFilter, onLoadLastScan, onImportScan,
   sector, setSector, location, setLocation, radius, setRadius
 }: SearchSectionProps) {
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && onImportScan) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target?.result as string);
+          onImportScan(json);
+        } catch {
+          alert("Fichier invalide ou corrompu.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
 
   const handleScan = () => {
     if (location.trim()) {
@@ -54,8 +72,9 @@ export default function SearchSection({
               <input
                 className="h-11 w-full rounded-lg border border-border-light bg-background-light pl-10 pr-4 text-sm font-medium focus:border-primary focus:ring-1 focus:ring-primary dark:border-border-dark dark:bg-background-dark dark:text-white dark:placeholder-slate-500"
                 type="number"
-                min="1"
+                min="0.1"
                 max="50"
+                step="0.1"
                 value={radius}
                 onChange={(e) => setRadius(Number(e.target.value))}
                 onKeyDown={(e) => e.key === 'Enter' && handleScan()}
@@ -85,10 +104,18 @@ export default function SearchSection({
           </div>
         </div>
         <div className="flex gap-2 flex-col sm:flex-row w-full md:w-auto">
+          <label
+            className="flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:bg-slate-300 dark:hover:bg-slate-600 active:scale-95 cursor-pointer border border-slate-300 dark:border-slate-600"
+            title="Importer un fichier de sauvegarde (.json)"
+          >
+            <span className="material-symbols-outlined text-[20px] text-blue-600 dark:text-blue-400">upload_file</span>
+            <span>Importer JSON</span>
+            <input type="file" accept=".json" className="hidden" onChange={handleFileImport} />
+          </label>
           <button
             onClick={onLoadLastScan}
             disabled={isLoading}
-            className="flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:bg-slate-300 dark:hover:bg-slate-600 active:scale-95 disabled:opacity-50"
+            className="flex h-11 items-center justify-center gap-2 rounded-lg bg-slate-200 dark:bg-slate-700 px-4 text-sm font-bold text-slate-700 dark:text-slate-300 shadow-sm transition-all hover:bg-slate-300 dark:hover:bg-slate-600 active:scale-95 disabled:opacity-50 border border-slate-300 dark:border-slate-600"
             title="Recharger le dernier scan sans utiliser de tokens"
           >
             <span className="material-symbols-outlined text-[20px]">history</span>
