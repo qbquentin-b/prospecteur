@@ -12,6 +12,9 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { LatLngBounds } from "leaflet";
 
+// Dynamically import map with ssr: false, defined OUTSIDE the component to prevent unmounting
+const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[450px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
+
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -266,9 +269,6 @@ export default function Home() {
       alert("Le fichier JSON n'est pas au bon format.");
     }
   };
-
-  // Dynamically import map with ssr: false
-  const Map = dynamic(() => import('../components/Map'), { ssr: false, loading: () => <div className="h-[450px] w-full bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div> });
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden relative">
